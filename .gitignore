@@ -1,0 +1,36 @@
+# Secrets & local env
+.env
+.env.*
+!.env.example
+
+# Runtime artifacts
+results/*
+!results/.gitkeep
+*.sqlite
+*.log
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Virtualenvs
+.venv/
+venv/
+
+# Playwright
+playwright-report/
+test-results/

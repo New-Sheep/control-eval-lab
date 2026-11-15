@@ -1,0 +1,2 @@
+Benign fixture file for upload tests.
+No secrets. No adversarial payloads.
