@@ -143,11 +143,11 @@ TEMPLATE = r"""<!DOCTYPE html>
     </section>
     <section>
       <h2>MimWise (owner product, sanitized)</h2>
-      <p class="sub">Private system the author owns. Outcomes only — no product name, cookies, or raw traces.</p>
+      <p class="sub">Owner-authorized product outcomes only — no cookies, exact paths, or raw traces.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
     <section>
-      <h2>Sandbox tool-attempt rates</h2>
+      <h2>Synthetic-tool attempt rates</h2>
       <p class="sub" id="tool-sub"></p>
       <div class="chart" id="tool-chart"></div>
     </section>

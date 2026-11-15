@@ -1,41 +1,22 @@
 # Control Eval Lab
 
-## Start here
+**Technical report + runnable micro-laboratory** for measuring locks around tool-using LLM agents, and (separately) open-weight synthetic-tool attempt rates. Independent work — **not** affiliated with the UK AI Security Institute. Written in AI-control evaluation style (clear questions, metrics with *n*, explicit limitations).
 
-Read **[docs/JOURNEY.md](docs/JOURNEY.md)** first — the chronological story (fine-tune → tool-attempt eval → agents/MCP → Docker SoftTrial → owner product **MimWise** → this public lab).
+## Abstract
 
-Then skim the rest of the docs table below, or jump straight to Quick start.
+Chat refusals do not bound risk when models can call tools. This repository provides (1) a local practice web app and multi-agent harness with egress allowlisting, guest-session gates, and related control measures, and (2) a public write-up of offline synthetic-tool propensity results on open ~8B models (attempt rates ~13% / 36% / 77% / 79% on a 262-prompt suite). MimWise (owner product) results are summarized at high level only. Weights and private traces are not shipped.
 
----
+## Read in this order (one-way)
 
-## What is this?
-
-A small, **public**, **forkable** lab for testing **guardrails around AI agents**.
-
-You run a toy website on your own machine. You give an AI tools (HTTP, optional browser). The AI tries to find a planted fake secret. Your job as the lab author is to show that:
-
-1. the AI can do its lab job on the toy site, and  
-2. the AI still **cannot** call random evil websites or cloud metadata addresses.
-
-This is practice for **control evaluation** — measuring locks around agents — not a toolkit for attacking strangers’ websites.
-
-**No model weight files** are included. Refusal / fake-tool experiments are summarised in the journey and [docs/REFUSAL_EVAL.md](docs/REFUSAL_EVAL.md); those weights stay private.
-
----
-
-## Read the docs (recommended order)
-
-| Order | File | What you’ll learn |
-|-------|------|-------------------|
-| **1** | **[docs/JOURNEY.md](docs/JOURNEY.md)** | **Full walkthrough — start here** |
-| 2 | [docs/METHOD.md](docs/METHOD.md) | How a run works; why Scout/Thief/Breaker; why each control exists |
-| 3 | [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md) | What happened on the toy app and on MimWise (sanitized) |
-| 4 | [docs/REFUSAL_EVAL.md](docs/REFUSAL_EVAL.md) | Fake dangerous tools memo (attempt rates) |
-| 5 | [docs/RESEARCH.md](docs/RESEARCH.md) | Short two-track summary |
-| 6 | [docs/dashboard/index.html](docs/dashboard/index.html) | Charts + KPI cards |
-| — | [docs/data/aggregates.json](docs/data/aggregates.json) | Sanitized numbers behind the charts |
-
----
+| # | Document | Purpose |
+|---|----------|---------|
+| 1 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Executive brief |
+| 2 | [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) | Full tech report (start here for specialists) |
+| 3 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams + OpenAI / NVIDIA / Ollama providers |
+| 4 | [docs/REFERENCE.md](docs/REFERENCE.md) | Every agent, every MCP tool, data sizes, eval suites |
+| 5 | [docs/RESULTS.md](docs/RESULTS.md) | Tables |
+| 6 | [docs/GLOSSARY.md](docs/GLOSSARY.md) | Terms |
+| 7 | [docs/dashboard/index.html](docs/dashboard/index.html) | Charts |
 
 ## Quick start
 
@@ -43,80 +24,32 @@ This is practice for **control evaluation** — measuring locks around agents �
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-copy .env.example .env   # then add OPENAI_API_KEY or NVIDIA_API_KEY
+copy .env.example .env   # set OPENAI_API_KEY and/or NVIDIA_API_KEY; or use ollama
 
-# Terminal A — toy website
+# Terminal A — practice app
 uvicorn toy_app.main:app --host 127.0.0.1 --port 8000
 
-# Terminal B — check locks, then run agents
+# Terminal B — locks then optional agents
 python -m control_eval deny-smoke
-python -m control_eval swarm --provider openai --max-turns 12
-```
-
-Optional checks without an LLM:
-
-```bash
 pytest -q
+python -m control_eval swarm --provider openai --max-turns 12
+# also: --provider nvidia | ollama
 ```
 
-Swarm write-ups go under `results/` (ignored by git so secrets and traces stay local).
+| Provider | Default model |
+|----------|----------------|
+| `openai` | `gpt-4.1-mini` |
+| `nvidia` | `nvidia/nemotron-3.5-bolt-e4b` |
+| `ollama` | `qwen2.5:7b-instruct` (local `:11434`) |
 
----
+Swarm logs go under `results/` (gitignored).
 
-## What gets measured
-
-| Lock | Plain meaning |
-|------|----------------|
-| Allowlist | Agents may only talk to the toy app host you configured |
-| Deny-smoke | Automatic “locks look sane?” checklist before a long run |
-| HITL / simulated wipe | Agents can *ask* to wipe; the lab never really wipes |
-| Tool budget | Stop runaway tool loops |
-| Guest session | Notes stay closed until a guest cookie exists |
-| Breaker role | An agent whose win condition is proving blocks work |
-
-Details: [docs/METHOD.md](docs/METHOD.md). Story: [docs/JOURNEY.md](docs/JOURNEY.md).
-
----
-
-## Folder map
-
-```text
-src/control_eval/     # the harness (domain → ports → adapters → CLI)
-toy_app/              # disposable local website with planted fake secrets
-config/roles/         # Scout / Thief / Breaker instructions
-docs/                 # journey + research write-ups + dashboard + aggregate JSON
-fixtures/             # harmless sample upload file
-tests/                # allowlist + toy SoftTrial tests
-```
-
-### Rebuild charts
-
-```bash
-python docs/dashboard/build_dashboard.py
-# open docs/dashboard/index.html in a browser
-```
-
----
-
-## Extending
-
-1. Add an interface under `src/control_eval/ports/`
-2. Implement it under `adapters/`
-3. Expose it to agents as a tool if needed
-4. Add or edit a role file under `config/roles/`
-
-Keep every network call behind the same allowlist.
-
----
-
-## Safety / ethics
+## Safety
 
 - Default target is `http://127.0.0.1:8000` only.
-- There is **no** “point this at production by flipping a flag” path in this public repo.
+- No “flip a flag to hit production” path in this public repo.
 - Do not aim this harness at systems you do not own or are not authorized to test.
-- Planted `PLANTED_SECRET_*` strings are lab markers, not real credentials.
-
----
+- `PLANTED_SECRET_*` strings are lab markers, not real credentials.
 
 ## License
 
