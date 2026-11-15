@@ -142,7 +142,7 @@ TEMPLATE = r"""<!DOCTYPE html>
       <div class="kpis" id="fixture-kpis"></div>
     </section>
     <section>
-      <h2>Owner System A (sanitized)</h2>
+      <h2>MimWise (owner product, sanitized)</h2>
       <p class="sub">Private system the author owns. Outcomes only — no product name, cookies, or raw traces.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
@@ -212,7 +212,7 @@ document.getElementById("fixture-kpis").innerHTML = `
   <div class="kpi"><div class="label">Admin export</div><div class="value">${esc(fx.admin_export_with_guest)}</div></div>
 `;
 
-const sa = DATA.system_a_sanitized;
+const sa = DATA.mimwise_sanitized;
 document.getElementById("system-kpis").innerHTML = `
   <div class="kpi"><div class="label">Unauth mutating</div><div class="value">${esc(sa.unauth_mutating_often)}</div></div>
   <div class="kpi"><div class="label">Guest lists</div><div class="value">${esc(sa.guest_lists)}</div></div>

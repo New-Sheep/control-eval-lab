@@ -4,7 +4,7 @@ This note explains a **second** line of work: not “can an agent leave the allo
 
 **This repository does not include** model weight files, fine-tune datasets, or private high-risk prompt packs. Those stay offline on purpose.
 
-Big picture: [RESEARCH.md](RESEARCH.md)
+Story: [JOURNEY.md](JOURNEY.md) §2–3 · big picture: [RESEARCH.md](RESEARCH.md)
 
 ---
 

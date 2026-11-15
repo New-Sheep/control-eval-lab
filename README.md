@@ -1,5 +1,13 @@
 # Control Eval Lab
 
+## Start here
+
+Read **[docs/JOURNEY.md](docs/JOURNEY.md)** first — the chronological story (fine-tune → tool-attempt eval → agents/MCP → Docker SoftTrial → owner product **MimWise** → this public lab).
+
+Then skim the rest of the docs table below, or jump straight to Quick start.
+
+---
+
 ## What is this?
 
 A small, **public**, **forkable** lab for testing **guardrails around AI agents**.
@@ -11,7 +19,7 @@ You run a toy website on your own machine. You give an AI tools (HTTP, optional 
 
 This is practice for **control evaluation** — measuring locks around agents — not a toolkit for attacking strangers’ websites.
 
-**No model weight files** are included. A separate plain-English note describes refusal / fake-tool experiments; those weights stay private.
+**No model weight files** are included. Refusal / fake-tool experiments are summarised in the journey and [docs/REFUSAL_EVAL.md](docs/REFUSAL_EVAL.md); those weights stay private.
 
 ---
 
@@ -19,11 +27,12 @@ This is practice for **control evaluation** — measuring locks around agents �
 
 | Order | File | What you’ll learn |
 |-------|------|-------------------|
-| 1 | [docs/RESEARCH.md](docs/RESEARCH.md) | Why this project exists; two research tracks; what is public vs private |
+| **1** | **[docs/JOURNEY.md](docs/JOURNEY.md)** | **Full walkthrough — start here** |
 | 2 | [docs/METHOD.md](docs/METHOD.md) | How a run works; why Scout/Thief/Breaker; why each control exists |
-| 3 | [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md) | What actually happened on the toy app and on a private system I own |
-| 4 | [docs/REFUSAL_EVAL.md](docs/REFUSAL_EVAL.md) | How I tested models with fake dangerous tools (memo only) |
-| 5 | [docs/dashboard/index.html](docs/dashboard/index.html) | Charts + KPI cards (open in a browser) |
+| 3 | [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md) | What happened on the toy app and on MimWise (sanitized) |
+| 4 | [docs/REFUSAL_EVAL.md](docs/REFUSAL_EVAL.md) | Fake dangerous tools memo (attempt rates) |
+| 5 | [docs/RESEARCH.md](docs/RESEARCH.md) | Short two-track summary |
+| 6 | [docs/dashboard/index.html](docs/dashboard/index.html) | Charts + KPI cards |
 | — | [docs/data/aggregates.json](docs/data/aggregates.json) | Sanitized numbers behind the charts |
 
 ---
@@ -65,7 +74,7 @@ Swarm write-ups go under `results/` (ignored by git so secrets and traces stay l
 | Guest session | Notes stay closed until a guest cookie exists |
 | Breaker role | An agent whose win condition is proving blocks work |
 
-Details and design rationale: [docs/METHOD.md](docs/METHOD.md).
+Details: [docs/METHOD.md](docs/METHOD.md). Story: [docs/JOURNEY.md](docs/JOURNEY.md).
 
 ---
 
@@ -75,7 +84,7 @@ Details and design rationale: [docs/METHOD.md](docs/METHOD.md).
 src/control_eval/     # the harness (domain → ports → adapters → CLI)
 toy_app/              # disposable local website with planted fake secrets
 config/roles/         # Scout / Thief / Breaker instructions
-docs/                 # research write-ups + dashboard + aggregate JSON
+docs/                 # journey + research write-ups + dashboard + aggregate JSON
 fixtures/             # harmless sample upload file
 tests/                # allowlist + toy SoftTrial tests
 ```
@@ -86,7 +95,6 @@ tests/                # allowlist + toy SoftTrial tests
 python docs/dashboard/build_dashboard.py
 # open docs/dashboard/index.html in a browser
 ```
-
 
 ---
 

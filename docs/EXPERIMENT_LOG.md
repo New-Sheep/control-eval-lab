@@ -2,7 +2,7 @@
 
 This is a lab notebook in plain English. It records **what happened**, **how we ran it**, and **what I concluded**. It is not a marketing sheet.
 
-Background: [RESEARCH.md](RESEARCH.md) · method: [METHOD.md](METHOD.md)
+Story: [JOURNEY.md](JOURNEY.md) · background: [RESEARCH.md](RESEARCH.md) · method: [METHOD.md](METHOD.md)
 
 ---
 
@@ -11,7 +11,7 @@ Background: [RESEARCH.md](RESEARCH.md) · method: [METHOD.md](METHOD.md)
 I ran two kinds of targets:
 
 1. **The toy app in this repo** — public, disposable, secrets are fake and planted on purpose.  
-2. **System A** — a real system I own and was allowed to test. I keep the name and URLs private here, and I do not paste session cookies or raw attack traces.
+2. **MimWise** — a founder product I own and was allowed to test. Exact URLs, cookies, and raw attack traces stay private here (see [JOURNEY.md](JOURNEY.md) §6).
 
 I did **not** use this public write-up to describe attacks on other people’s websites.
 
@@ -105,17 +105,17 @@ If the LLM is weak or the API key is missing, the *code* path still stands on de
 
 ---
 
-## Part 3 — Owner-authorized System A (private; sanitized)
+## Part 3 — Owner-authorized MimWise (sanitized)
 
 ### Goal
 
-Ask: *Does the same style of agent pressure look different on a real system I own, versus the toy villain?*
+Ask: *Does the same style of agent pressure look different on MimWise (live product I own), versus the toy villain?*
 
 ### How (high level only)
 
 - Same ideas: guest/session bootstrap, list/detail APIs, uploads, browser clicks where useful, egress deny checks.
 - No third-party targets.
-- Details that would identify the product or help strangers replay a live attack stay out of this file.
+- Exact paths, cookies, and raw traces stay out of this file (interview / live demo). Narrative: [JOURNEY.md](JOURNEY.md) §6.
 
 ### What I observed (sanitized)
 
@@ -128,18 +128,18 @@ Ask: *Does the same style of agent pressure look different on a real system I ow
 | Egress fence | Evil host + metadata **blocked**; configured target allowed | Same control idea as the public lab |
 | Guessing other users’ private notes by ID | **Not** shown in these runs | Do not claim IDOR wins we did not get |
 
-### Honest bottom line for System A
+### Honest bottom line for MimWise
 
-The real system was **harder** than the toy app. That is mostly good news for the product.  
+The live product was **harder** than the toy app. That is mostly good news for the product.  
 Empty SoftTrial lists and auth-walled uploads are **hardening**, not embarrassment.
 
 ### Decision notes
 
-- **Why still talk about System A at all?**  
+- **Why still talk about MimWise at all?**  
   Otherwise readers might think I only ever tested a fake app I designed to lose. Showing “fixture breaks, real system held more” is an honest measurement story.
 
-- **Why anonymize?**  
-  Public GitHub should not become a free playbook against a live product, even my own, with cookies and exact paths pasted forever.
+- **Why keep paths/cookies private?**  
+  Public GitHub should not become a free playbook against a live product, even my own.
 
 ---
 
@@ -173,7 +173,7 @@ Many products hide important buttons and uploads behind JavaScript. Plain HTTP a
 
 | Tempting claim | Why I avoid it |
 |----------------|----------------|
-| “We owned production” | System A mostly held; fixture was designed to leak planted markers |
+| “We owned production” | MimWise mostly held; fixture was designed to leak planted markers |
 | “Browser agents always win” | Uploads and SPA state still flake |
 | “This tests OpenAI/Anthropic monitors” | Different problem; not what this harness measures |
 | “Anyone can point this at any website” | Policy + law + allowlist are intentional limits |

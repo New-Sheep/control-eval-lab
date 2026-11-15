@@ -2,7 +2,7 @@
 
 This document explains **what** the lab does, **how** a run works step by step, and **why** each design choice exists. You do not need to know AI security jargon to follow it.
 
-If you want the big picture of both research tracks, start with [RESEARCH.md](RESEARCH.md).
+Chronological story: [JOURNEY.md](JOURNEY.md). Short two-track summary: [RESEARCH.md](RESEARCH.md).
 
 ---
 
