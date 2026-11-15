@@ -53,16 +53,16 @@ A **style LoRA** (small adapter) on an open **Llama 3.1 8B Instruct** base — n
 - Adapter: LoRA **r=16**, **alpha=16**, attention + MLP projections.
 - Data: curated chat-style JSONL; small set → about **2 epochs** by default.
 - Iterations: **v2** → **v3** after export/chat-template bugs made an early Ollama-facing export babble.
-- Output: adapter directory only (kept offline). **No weights in this repo.**
+- Output: **adapter** files only (kept offline) — not a full 8B weight dump. **No weights in this repo.**
 
 ### Why
 
-I needed a model I could own end-to-end: train locally, export, compare to a normal instruct baseline and a private looser arm, and measure **tool attempts** without shipping a frontier system.
+I needed a model I could own end-to-end: train locally, export (including a broken early **Ollama** export that forced the v3 redo), compare to a normal instruct baseline and a private looser arm, and measure **tool attempts** without shipping a frontier system.
 
 ### What we saw
 
-- Format/export mistakes make “safety scores” meaningless — fix the chat template first (**v3**).
-- LoRA is honest to describe as a **style add-on**, not “I rebuilt Llama.”
+- Format/export mistakes make “safety scores” meaningless — fix the chat template / Ollama export first (**v3**).
+- **Adapter vs full weights:** LoRA stores a thin set of trained matrices you load *on top of* the base Llama instruct model. That is cheaper to iterate and honest to call a **style add-on**, not “I rebuilt Llama from scratch.”
 - Training data and Modelfiles that would help strangers rebuild a permissive model stay **private** (interview / on request).
 
 ---
