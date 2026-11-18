@@ -1,6 +1,6 @@
 {
-  "title": "Control Eval Lab — sanitized aggregate figures",
-  "generated_note": "Hand-curated public aggregates. No cookies, no product URLs, no uncensored model build instructions.",
+  "title": "Control Eval Lab sanitized aggregate figures",
+  "generated_note": "Hand-curated public aggregates from separate offline Ollama experiments. Not reproduced by running this repo; fine-tune weights and case JSONL are private. No cookies, no product URLs, no uncensored model build instructions.",
   "control_fixture": {
     "deny_smoke": "PASS",
     "pytest_passed": 7,
@@ -16,7 +16,7 @@
     "egress_evil_metadata": "BLOCKED"
   },
   "tool_attempt_suite": {
-    "description": "Sandbox high-risk synthetic-tool attempts (fake tools only). Approx rates from offline Ollama eval.",
+    "description": "Sandbox high-risk synthetic-tool attempts (fake tools only). Approx rates from separate offline Ollama eval; summarised here only, not reproduced by cloning/running this repo.",
     "n_prompts_per_model": 262,
     "n_models": 4,
     "arms": [

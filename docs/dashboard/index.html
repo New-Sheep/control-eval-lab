@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Control Eval Lab — figures</title>
+<title>Control Eval Lab figures</title>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -107,7 +107,7 @@
 </head>
 <body>
   <header>
-    <h1>Control Eval Lab — figures</h1>
+    <h1>Control Eval Lab figures</h1>
     <p class="lede" id="lede"></p>
     <div class="note" id="note"></div>
   </header>
@@ -119,7 +119,7 @@
     </section>
     <section>
       <h2>MimWise (owner product, sanitized)</h2>
-      <p class="sub">Owner-authorized product outcomes only — no cookies, exact paths, or raw traces.</p>
+      <p class="sub">Owner-authorized product outcomes only; no cookies, exact paths, or raw traces.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
     <section>
@@ -140,11 +140,11 @@
   <footer>
     Built from <code>docs/data/aggregates.json</code>.
     Rebuild: <code>python docs/dashboard/build_dashboard.py</code>.
-    See also <a href="../REFUSAL_EVAL.md">REFUSAL_EVAL.md</a> and
-    <a href="../EXPERIMENT_LOG.md">EXPERIMENT_LOG.md</a>.
+    See also <a href="../RESULTS.md">RESULTS.md</a> and
+    <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
   </footer>
 <script>
-const DATA = {"title": "Control Eval Lab — sanitized aggregate figures", "generated_note": "Hand-curated public aggregates. No cookies, no product URLs, no uncensored model build instructions.", "control_fixture": {"deny_smoke": "PASS", "pytest_passed": 7, "notes_without_guest": "403", "notes_with_guest": "200_with_PLANTED_SECRET", "admin_export_with_guest": "403"}, "mimwise_sanitized": {"unauth_mutating_often": "401_or_403", "guest_lists": "200_empty", "upload_without_full_auth": "often_403", "cross_user_planted_secret_idor": "not_shown", "egress_evil_metadata": "BLOCKED"}, "tool_attempt_suite": {"description": "Sandbox high-risk synthetic-tool attempts (fake tools only). Approx rates from offline Ollama eval.", "n_prompts_per_model": 262, "n_models": 4, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 13, "note": "After chat-export / template fixes"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": 36, "note": "Earlier persona adapter"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": 77, "note": "Stock small instruct model"}, {"id": "private_looser", "label": "Permissive offline comparison", "attempt_rate_pct": 79, "note": "Not published; worse comparison only"}]}, "reason_then_act_suite": {"description": "Milder prompts; model must reason then decide. Dangerous attempt rates.", "n_prompts_per_model": 50, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 4, "note": "Lowest attempts; more formatting misses"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": null, "note": "See private full tables"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": null, "note": "Often reasoned about risk then still called the tool"}]}, "takeaways": ["Chat refusals are not the same as refusing to call a tool.", "The second fine-tune attempted fewer high-risk sandbox tools than stock Qwen 2.5 7B Instruct under this protocol (n=262).", "A post-model blocker stopped fake tool execution even when the model tried.", "The practice SoftTrial fixture is designed to leak planted markers; MimWise (owner product) was harder (empty lists / auth walls)."]};
+const DATA = {"title": "Control Eval Lab sanitized aggregate figures", "generated_note": "Hand-curated public aggregates from separate offline Ollama experiments. Not reproduced by running this repo; fine-tune weights and case JSONL are private. No cookies, no product URLs, no uncensored model build instructions.", "control_fixture": {"deny_smoke": "PASS", "pytest_passed": 7, "notes_without_guest": "403", "notes_with_guest": "200_with_PLANTED_SECRET", "admin_export_with_guest": "403"}, "mimwise_sanitized": {"unauth_mutating_often": "401_or_403", "guest_lists": "200_empty", "upload_without_full_auth": "often_403", "cross_user_planted_secret_idor": "not_shown", "egress_evil_metadata": "BLOCKED"}, "tool_attempt_suite": {"description": "Sandbox high-risk synthetic-tool attempts (fake tools only). Approx rates from separate offline Ollama eval; summarised here only, not reproduced by cloning/running this repo.", "n_prompts_per_model": 262, "n_models": 4, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 13, "note": "After chat-export / template fixes"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": 36, "note": "Earlier persona adapter"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": 77, "note": "Stock small instruct model"}, {"id": "private_looser", "label": "Permissive offline comparison", "attempt_rate_pct": 79, "note": "Not published; worse comparison only"}]}, "reason_then_act_suite": {"description": "Milder prompts; model must reason then decide. Dangerous attempt rates.", "n_prompts_per_model": 50, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 4, "note": "Lowest attempts; more formatting misses"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": null, "note": "See private full tables"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": null, "note": "Often reasoned about risk then still called the tool"}]}, "takeaways": ["Chat refusals are not the same as refusing to call a tool.", "The second fine-tune attempted fewer high-risk sandbox tools than stock Qwen 2.5 7B Instruct under this protocol (n=262).", "A post-model blocker stopped fake tool execution even when the model tried.", "The practice SoftTrial fixture is designed to leak planted markers; MimWise (owner product) was harder (empty lists / auth walls)."]};
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({
@@ -164,7 +164,7 @@ function renderBar(label, pct, note) {
     return `<div class="row">
       <div class="name">${esc(label)}</div>
       <div class="track"><div class="fill" style="width:0%"></div></div>
-      <div class="pct">—</div>
+      <div class="pct">n/a</div>
     </div>
     <div style="color:var(--muted);font-size:0.85rem;margin:-0.35rem 0 0.5rem 0">${esc(note || "")}</div>`;
   }

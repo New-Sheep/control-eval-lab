@@ -1,22 +1,19 @@
 # Control Eval Lab
 
-**Technical report + runnable micro-laboratory** for measuring locks around tool-using LLM agents, and (separately) open-weight synthetic-tool attempt rates. Independent work — **not** affiliated with the UK AI Security Institute. Written in AI-control evaluation style (clear questions, metrics with *n*, explicit limitations).
+Runnable control harness for tool-using LLM agents, plus a short technical write-up of offline synthetic-tool propensity work.
 
-## Abstract
+> **Scope:** this repository ships the runnable control harness (egress allowlist, Scout/Thief/Breaker swarm, deny-smoke, tests, simulated wipe). The synthetic-tool propensity figures (e.g. ~13% vs ~77%) come from **separate offline experiments** on local Ollama models; they are summarised in the docs and are **not** reproduced by running this repo. Fine-tune weights and case JSONL are private.
 
-Chat refusals do not bound risk when models can call tools. This repository provides (1) a local practice web app and multi-agent harness with egress allowlisting, guest-session gates, and related control measures, and (2) a public write-up of offline synthetic-tool propensity results on open ~8B models (attempt rates ~13% / 36% / 77% / 79% on a 262-prompt suite). MimWise (owner product) results are summarized at high level only. Weights and private traces are not shipped.
+## Docs
 
-## Read in this order (one-way)
-
-| # | Document | Purpose |
-|---|----------|---------|
-| 1 | [docs/OVERVIEW.md](docs/OVERVIEW.md) | Executive brief |
-| 2 | [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) | Full tech report (start here for specialists) |
-| 3 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams + OpenAI / NVIDIA / Ollama providers |
-| 4 | [docs/REFERENCE.md](docs/REFERENCE.md) | Every agent, every MCP tool, data sizes, eval suites |
-| 5 | [docs/RESULTS.md](docs/RESULTS.md) | Tables |
-| 6 | [docs/GLOSSARY.md](docs/GLOSSARY.md) | Terms |
-| 7 | [docs/dashboard/index.html](docs/dashboard/index.html) | Charts |
+| Document | Purpose |
+|----------|---------|
+| [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md) | Narrative: questions, methods, interpretation, limitations, citations |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the runnable harness is wired |
+| [docs/REFERENCE.md](docs/REFERENCE.md) | Agents and MCP tools |
+| [docs/RESULTS.md](docs/RESULTS.md) | Measured tables (canonical numbers) |
+| [docs/GLOSSARY.md](docs/GLOSSARY.md) | Terms |
+| [docs/dashboard/index.html](docs/dashboard/index.html) | Charts from `docs/data/aggregates.json` |
 
 ## Quick start
 
@@ -26,10 +23,10 @@ python -m venv .venv
 pip install -e ".[dev]"
 copy .env.example .env   # set OPENAI_API_KEY and/or NVIDIA_API_KEY; or use ollama
 
-# Terminal A — practice app
+# Terminal A: practice app
 uvicorn toy_app.main:app --host 127.0.0.1 --port 8000
 
-# Terminal B — locks then optional agents
+# Terminal B: locks then optional agents
 python -m control_eval deny-smoke
 pytest -q
 python -m control_eval swarm --provider openai --max-turns 12
@@ -47,7 +44,6 @@ Swarm logs go under `results/` (gitignored).
 ## Safety
 
 - Default target is `http://127.0.0.1:8000` only.
-- No “flip a flag to hit production” path in this public repo.
 - Do not aim this harness at systems you do not own or are not authorized to test.
 - `PLANTED_SECRET_*` strings are lab markers, not real credentials.
 

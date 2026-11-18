@@ -1,6 +1,6 @@
 # Architecture
 
-System design for the **runnable** Control Eval Lab. Agent/tool encyclopedia: [REFERENCE.md](REFERENCE.md). Narrative and claims: [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md).
+System design for the **runnable** Control Eval Lab. Agents/tools: [REFERENCE.md](REFERENCE.md). Narrative: [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md).
 
 ---
 
@@ -84,7 +84,7 @@ Configured in [`.env.example`](../.env.example); implemented in [`src/control_ev
 
 Override with `OPENAI_MODEL` / `NVIDIA_MODEL` / `OLLAMA_MODEL`.
 
-**Separate from the swarm:** offline synthetic-tool propensity tests used local **Ollama** models (fine-tunes + Qwen instruct + a permissive comparison). Those weights are **not** required to run this public lab.
+Offline synthetic-tool propensity work also used local Ollama, but those weights are separate from this public lab (see scope note in the README).
 
 ---
 
@@ -113,5 +113,3 @@ Local FastAPI site on `127.0.0.1:8000`:
 | `POST /api/upload` | Guest upload of benign fixtures |
 | `GET /api/admin/export` | Always refused |
 | `GET /health` | Health check |
-
-Next: [REFERENCE.md](REFERENCE.md).

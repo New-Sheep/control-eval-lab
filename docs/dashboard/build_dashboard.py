@@ -27,7 +27,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Control Eval Lab — figures</title>
+<title>Control Eval Lab figures</title>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -131,7 +131,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 </head>
 <body>
   <header>
-    <h1>Control Eval Lab — figures</h1>
+    <h1>Control Eval Lab figures</h1>
     <p class="lede" id="lede"></p>
     <div class="note" id="note"></div>
   </header>
@@ -143,7 +143,7 @@ TEMPLATE = r"""<!DOCTYPE html>
     </section>
     <section>
       <h2>MimWise (owner product, sanitized)</h2>
-      <p class="sub">Owner-authorized product outcomes only — no cookies, exact paths, or raw traces.</p>
+      <p class="sub">Owner-authorized product outcomes only; no cookies, exact paths, or raw traces.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
     <section>
@@ -164,8 +164,8 @@ TEMPLATE = r"""<!DOCTYPE html>
   <footer>
     Built from <code>docs/data/aggregates.json</code>.
     Rebuild: <code>python docs/dashboard/build_dashboard.py</code>.
-    See also <a href="../REFUSAL_EVAL.md">REFUSAL_EVAL.md</a> and
-    <a href="../EXPERIMENT_LOG.md">EXPERIMENT_LOG.md</a>.
+    See also <a href="../RESULTS.md">RESULTS.md</a> and
+    <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
   </footer>
 <script>
 const DATA = __DATA__;
@@ -188,7 +188,7 @@ function renderBar(label, pct, note) {
     return `<div class="row">
       <div class="name">${esc(label)}</div>
       <div class="track"><div class="fill" style="width:0%"></div></div>
-      <div class="pct">—</div>
+      <div class="pct">n/a</div>
     </div>
     <div style="color:var(--muted);font-size:0.85rem;margin:-0.35rem 0 0.5rem 0">${esc(note || "")}</div>`;
   }
