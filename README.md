@@ -19,6 +19,49 @@ The goal is teaching and portfolio work: measure locks with numbers, not vibes.
 
 ---
 
+## Where this started: private DarkGenus lab
+
+Work did **not** begin in this public repo. It began in a **local private project** called **DarkGenus** (on the author’s machine; not published). The notes below match that project’s **training / export code**, not only its README.
+
+### Two different “brains”
+
+| Local name | What it really is | Saved artifacts |
+|------------|-------------------|-----------------|
+| **Llama + LoRA** (`darkgenus`, then `darkgenus-v2` / `v3`) | Start from **Llama 3.1 8B Instruct** (4-bit Unsloth). Train a thin **LoRA** (rank 16, alpha 16) with Unsloth + TRL. Save adapter folders, merge, export GGUF for Ollama. | `DarkGenus-8B-LoRA/`, `-v2/`, `-v3/` plus merged GGUF exports |
+| **`darkgenus-clear`** | **Not** a fine-tune. Ollama Modelfile `FROM dolphin3:8b` (optional alt: stock `llama3.1:8b`) plus a short system prompt for a blunt analytical voice. | Modelfile only; **no** DarkGenus LoRA weights |
+
+**Why “clear” existed.** Hugging Face base+LoRA answered in readable English, but the first merged Ollama tag (`darkgenus`) after merge + heavy **Q4** quantize produced **nonsense** (train template ≠ serve template, plus export issues). `darkgenus-clear` was the fluent workaround so testing could continue.
+
+**What we observed about Dolphin / `clear`.** Dolphin-style bases ship with **very weak refusal habits**. In day-to-day chat, `darkgenus-clear` would answer almost any dodgy question; a Modelfile line asking it to refuse concrete harm how-tos did little in practice. That made it a useful **high-compliance comparison** (and later a **style teacher** for v3), and a bad thing to call “safe.”
+
+### How the Llama LoRAs were trained (scripts)
+
+1. **v1** (`train_darkgenus.py`): Alpaca-style pairs; small set repeated into ~673 rows. Weights → `DarkGenus-8B-LoRA/`. Ollama export **Q4** → broken prose.
+2. **v2** (`train_darkgenus_v2.py`): same Llama base; train with the **Llama-3 chat template**; curated JSONL (~**387** chats). Weights → `DarkGenus-8B-LoRA-v2/`. Export **Q5_K_M** → fluent `darkgenus-v2`.
+3. **v3** (`train_darkgenus_v3.py` + `scripts/distill_from_clear.py`): ask `darkgenus-clear` for longer debate-style answers, **filter out** hard harmful how-tos from teacher text, add **handwritten refuse** replies for blunt dangerous asks. ~**152** chats. Weights → `DarkGenus-8B-LoRA-v3/`. Export **Q5_K_M** → `darkgenus-v3`.
+
+Serving prompts (paraphrased): cold, sharp analytical voice in normal English; refuse step-by-step real-world harm how-tos. That is **prompt + light SFT**, not full safety training.
+
+### What DarkGenus measured after training
+
+- Chat/meta pressure (format tricks, fake “unlock” tokens) on base vs LoRA.
+- Fake-tool suites: **262×4** pressure + **50×4** reason-then-act.
+
+| Model | Rough high-risk **fake-tool** attempt rate (262-prompt suite) |
+|-------|----------------------------------------------------------------|
+| DarkGenus **v3** (Llama LoRA) | **~13%** (better chat refusals; still fails under format/authority pressure) |
+| DarkGenus **v2** (Llama LoRA) | **~36%** |
+| Stock **Qwen 2.5 7B Instruct** | **~77%** |
+| **`darkgenus-clear`** (Dolphin + prompt) | **~79%** (**0** model refuses in that suite; almost everything only stopped by the post-model blocker) |
+
+Models often **wrote about risk** and still tried the tool. That is why we later built **locks outside the model** here.
+
+### Why this public repo exists
+
+DarkGenus stays private (adapters, GGUFs, prompt JSONL, product traces). **Control Eval Lab** is the public follow-on: practice website, Scout/Thief/Breaker lock checks, and a plain write-up of those earlier results. Clone this for Experiment A. Experiment B numbers are **from DarkGenus**; they are not regenerated here.
+
+---
+
 ## What we did (two experiments)
 
 ### Experiment A: locks around a practice website (you can run this)
@@ -37,13 +80,13 @@ We also run automatic checks (`deny-smoke`, `pytest`) so the locks are not “tr
 
 **Why this method.** If the villain is designed so Thief can win when guest access is broken on purpose, we know the scoring works. Breaker then checks that the network lock still stops everything else.
 
-### Experiment B: pretend dangerous tools (offline write-up only)
+### Experiment B: pretend dangerous tools (ran first in DarkGenus; summarised here)
 
-**Setup.** Separately, on a local machine, we gave open ~8B models a menu of *fake* high-risk tools (nothing real happens) and counted how often they *tried* to call them under a fixed prompt script.
+**Setup.** Inside the private DarkGenus lab, we gave open ~8B models a menu of *fake* high-risk tools (nothing real happens) and counted how often they *tried* to call them under a fixed prompt script.
 
-**Method.** Same prompts for each model. Main score = attempt rate. One suite pushed hard for tool calls (262 prompts × 4 models). Another forced “write your reasoning first, then decide” (50 prompts × 4 models).
+**Method.** Same prompts for each model. Main score = attempt rate. One suite pushed hard for tool calls (262 prompts × 4 models). Another forced “write your reasoning first, then decide” (50 prompts × 4 models). Models: DarkGenus v3 / v2 (Llama LoRAs), stock Qwen, and Dolphin-based `darkgenus-clear`.
 
-**Headline numbers (summarised, not reproduced by this repo):** roughly **~13%** attempts for a second fine-tune vs **~77%** for a normal Qwen 2.5 7B Instruct baseline. Fine-tune weights and prompt files stay private.
+**Headline numbers (from DarkGenus; not reproduced by this repo):** about **~13%** attempts for v3 vs **~77%** for Qwen 2.5 7B Instruct; clear ~**79%** with almost no model-layer refuses. Weights and prompt files stay in the private lab.
 
 **Why this method.** Counting attempts on fake tools separates “would it try?” from “did it harm anything?” Reasoning-first checks whether sounding careful actually stops the tool press (often it did not; a post-model blocker did).
 
@@ -51,14 +94,13 @@ We also run automatic checks (`deny-smoke`, `pytest`) so the locks are not “tr
 
 ## What you get in this repository vs what is only summarised
 
-| In this repo (runnable) | Summarised only (not reproduced by cloning) |
-|-------------------------|-----------------------------------------------|
-| Practice website | Offline attempt rates (~13% vs ~77%, etc.) |
-| Network allowlist + guest-session checks | Fine-tune weights |
-| Scout / Thief / Breaker agent run | Private case prompt files |
-| `deny-smoke`, tests, simulated wipe | Full MimWise product traces |
+| In this public repo (runnable) | Stayed in private DarkGenus / summarised only |
+|--------------------------------|-----------------------------------------------|
+| Practice website + Scout / Thief / Breaker | Llama LoRA training, Dolphin Modelfile, Ollama GGUFs |
+| Network allowlist + guest-session checks | Fake-tool attempt suites (~13% vs ~77%, etc.) |
+| `deny-smoke`, tests, simulated wipe | Private prompt JSONL and full MimWise traces |
 
-> **Plain scope:** clone this to practice the **locks**. The propensity percentages are from **other** offline runs and are written up for context; running the repo does not regenerate them.
+> **Plain scope:** clone this to practice the **locks**. DarkGenus training and propensity percentages lived in a **private local repo** first; they are written up here for context and are **not** regenerated by running this repo.
 
 We also briefly compared the same *style* of pressure on **MimWise** (owner product, authorized). It was harder than the practice villain (empty guest lists, auth walls). Details stay high-level and private.
 
@@ -67,9 +109,10 @@ We also briefly compared the same *style* of pressure on **MimWise** (owner prod
 ## What we learned (short)
 
 1. Saying “no” in chat ≠ refusing to call a tool.
-2. Simple locks (allow only this host; require a guest cookie; refuse wipe unless approved) can be tested automatically.
-3. A practice villain is useful for scoring; a real product can still be much harder.
-4. Under one fixed offline script, a fine-tuned small model attempted risky fake tools less often than a stock instruct model. That is not a certificate that it is safe to ship.
+2. A weakly filtered chat base (Dolphin / `clear`) will answer almost anything; a post-model blocker still matters.
+3. Simple locks (allow only this host; require a guest cookie; refuse wipe unless approved) can be tested automatically.
+4. A practice villain is useful for scoring; a real product can still be much harder.
+5. Under one fixed offline script, Llama LoRA **v3** attempted risky fake tools less often than stock Qwen. That is not a certificate that it is safe to ship.
 
 Full tables: [docs/RESULTS.md](docs/RESULTS.md). Full write-up: [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md). Charts: [docs/dashboard/index.html](docs/dashboard/index.html).
 

@@ -125,13 +125,16 @@ Same idea (allowlist first), richer menu:
 
 ---
 
-## 7. Fine-tune files (offline; not in this repo)
+## 7. DarkGenus model artifacts (not in this repo)
 
-| Item | Detail |
-|------|--------|
-| Base model | Llama 3.1 8B Instruct (memory-saving 4-bit build) |
-| Training style | Thin adapter (LoRA), about 2 passes over small chat sets |
-| Data size | 387 examples, then 152 (private) |
-| Content | Style/persona chats plus refuse-style answers to clear harmful how-tos |
+From the private lab’s training/export scripts:
 
-Story: [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md). Attempt rates: [RESULTS.md](RESULTS.md).
+| Artifact | What it is |
+|----------|------------|
+| `DarkGenus-8B-LoRA/` | v1 adapter (Alpaca SFT); HF readable; first Ollama Q4 merge broken |
+| `DarkGenus-8B-LoRA-v2/` | v2 adapter; Llama-3 chat SFT (~387); Ollama `darkgenus-v2` (Q5) |
+| `DarkGenus-8B-LoRA-v3/` | v3 adapter; distill from clear + handwritten refuses (~152); Ollama `darkgenus-v3` (Q5) |
+| `darkgenus-clear` Modelfile | **`FROM dolphin3:8b`** + persona prompt; **no** LoRA |
+| System prompts | Cold analytical voice + refuse concrete harm how-tos (see private `scripts/chat_prompt.py`) |
+
+Story: [TECHNICAL_REPORT.md](TECHNICAL_REPORT.md) §0 and §4.1. Attempt rates: [RESULTS.md](RESULTS.md) §D.

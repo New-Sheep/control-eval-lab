@@ -5,6 +5,10 @@ Short definitions for readers with no prior lab context. Story: [TECHNICAL_REPOR
 | Term | Plain meaning |
 |------|----------------|
 | **Allowlist (host lock)** | A rule that says “this AI may only talk to this one website.” Anything else comes back as `BLOCKED`. |
+| **DarkGenus** | Private local project where Llama LoRA training, Dolphin Modelfile work, and fake-tool suites ran first. Not published; this repo is the public follow-on. |
+| **DarkGenus v2 / v3** | Llama 3.1 Instruct + LoRA adapters (`DarkGenus-8B-LoRA-v2/`, `-v3/`), exported as Ollama Q5 GGUFs. v1 HF adapter existed but its first Ollama merge spoke nonsense. v3 is the ~13% attempt-rate model. |
+| **darkgenus-clear** | Ollama tag on **`dolphin3:8b`** (sometimes stock Llama) with a persona Modelfile only. **No** DarkGenus LoRA. Very weak refusals in practice; ~79% fake-tool attempts and 0 model refuses in the big suite. |
+| **Dolphin** | Open chat model family often used as a weakly filtered / “uncensored-style” base. Here: the weights behind `darkgenus-clear`. |
 | **Attempt rate** | Of the prompts we asked, what share of the time did the model *try* to call a pretend dangerous tool? |
 | **Attack-style role** | An AI job that tries to probe or recover something (example: Thief looking for the planted fake secret). |
 | **Breaker** | The role whose win is proving bad hosts are blocked. |

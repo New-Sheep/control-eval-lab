@@ -92,7 +92,7 @@ Copy [`.env.example`](../.env.example) to `.env`. The code that talks to provide
 
 You can override model names with `OPENAI_MODEL` / `NVIDIA_MODEL` / `OLLAMA_MODEL`.
 
-Experiment B’s offline attempt-rate work also used local Ollama, but those fine-tuned files are **not** required to run Experiment A (see the README scope note).
+Experiment B’s offline attempt-rate work was done earlier in the private **DarkGenus** lab on local Ollama. Those fine-tuned files are **not** required to run Experiment A (see the README origin section).
 
 ---
 

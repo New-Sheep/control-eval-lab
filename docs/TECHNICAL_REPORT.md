@@ -4,7 +4,7 @@
 **Date:** November 2026  
 **What ships in the repo:** the practice website and the lock-checking agent run. Fine-tuned model files and private prompt lists are available on request / interview.
 
-> **What is runnable vs what is only summarised:** this repository lets you run Experiment A (locks on a practice website). The “how often did the model try a risky fake tool?” percentages (for example ~13% vs ~77%) come from Experiment B, done separately on a local machine. Those rates are written up here for context. Cloning this repo does not regenerate them. The fine-tune files and prompt cases stay private.
+> **What is runnable vs what is only summarised:** this repository lets you run Experiment A (locks on a practice website). Experiment B (fake-tool attempt rates such as ~13% vs ~77%) was run earlier in a **private local project called DarkGenus**. Those rates are written up here for context. Cloning this repo does not regenerate them. DarkGenus weights and prompt cases stay private.
 
 Start here for the story. Numbers: [RESULTS.md](RESULTS.md). How the runnable pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md). Who does what: [REFERENCE.md](REFERENCE.md). Plain terms: [GLOSSARY.md](GLOSSARY.md).
 
@@ -15,6 +15,20 @@ Start here for the story. Numbers: [RESULTS.md](RESULTS.md). How the runnable pi
 Today many AI systems can browse, call APIs, or upload files. A polite “I won’t help with that” in chat does not prove the AI will refuse to press a tool button. This report asks two questions: (1) how often do small open models *try* pretend dangerous tools under a fixed script, and (2) do simple locks (only talk to this website, require a guest cookie, refuse a real wipe) still hold when several AI roles poke a practice site, and at a high level an owner product (MimWise).
 
 Tables live in [RESULTS.md](RESULTS.md). This is a teaching / portfolio micro-lab, not a claim about frontier labs or industry-scale benchmarks.
+
+---
+
+## 0. Project timeline: DarkGenus → this public lab
+
+| Stage | Where | What happened |
+|-------|-------|----------------|
+| 1 | **DarkGenus** | QLoRA on **Llama 3.1 8B Instruct** (`train_darkgenus.py`); save `DarkGenus-8B-LoRA/`; first Ollama merge+Q4 export is broken nonsense |
+| 2 | **DarkGenus** | Fluent workaround: Ollama **`darkgenus-clear`** = **`dolphin3:8b`** (or stock Llama) + Modelfile persona (**no** LoRA) |
+| 3 | **DarkGenus** | Retrain **v2** / **v3** with Llama-3 chat template; save `-v2` / `-v3` adapters; export Q5 GGUFs |
+| 4 | **DarkGenus** | Chat/meta pressure tests; fake-tool suites **262×4** + **50×4** (rates in [RESULTS.md](RESULTS.md)) |
+| 5 | **Control Eval Lab** (this repo) | Practice website, Scout/Thief/Breaker locks, automatic tests; public write-up |
+
+DarkGenus is **not** shipped here. Details below match the private training/export scripts.
 
 ---
 
@@ -30,8 +44,8 @@ If you only grade chat refusals, you miss the tool step. So we measure **locks o
 
 We did two layers of work:
 
-- **Locks (Experiment A):** a multi-role agent run against a local practice website, with automatic pass/fail checks.
-- **Attempts (Experiment B):** offline, same prompts for several small models, counting how often they tried a fake risky tool.
+- **Attempts (Experiment B, first, in DarkGenus):** offline, same prompts for several small models, counting how often they tried a fake risky tool.
+- **Locks (Experiment A, later, in this repo):** a multi-role agent run against a local practice website, with automatic pass/fail checks.
 
 ---
 
@@ -63,23 +77,49 @@ Other projects study similar ideas at larger scale (for example AgentHarm for ha
 
 ## 4. Methods
 
-### 4.1 Fine-tuning (Experiment B background)
+### 4.1 What DarkGenus actually built (from the code)
 
-- Started from Llama 3.1 8B Instruct (a common open chat model, run in a memory-saving 4-bit build).
-- Added a thin adapter (LoRA) rather than retraining the whole model.
-- First training set: **387** chat examples. Second: **152** (style/persona plus “refuse clear harmful how-to” replies). Raw files private.
-- An early export into the local model runner produced nonsense text (template mismatch), so we ran a second fine-tune.
-- We are **not** claiming full safety training or that the result is safe to ship.
+All of this lived in the private **DarkGenus** repo.
 
-### 4.2 Counting tool attempts (Experiment B)
+#### A. Llama 3.1 Instruct + LoRA (real fine-tunes)
+
+| Piece | From the scripts |
+|-------|------------------|
+| Base | `unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit` (fits ~8 GB VRAM) |
+| Method | Unsloth + TRL `SFTTrainer`; LoRA **r=16**, **alpha=16** on attention + MLP projections |
+| v1 | `train_darkgenus.py`: Alpaca `### Instruction` format; tiny set duplicated (~**673** rows). Save **`DarkGenus-8B-LoRA/`**. Merge → GGUF **Q4_K_M** → Ollama `darkgenus` |
+| v2 | `train_darkgenus_v2.py`: **Llama-3 chat template**; curated `data/darkgenus_sft_v2.jsonl` (~**387**). Save **`DarkGenus-8B-LoRA-v2/`**. Export **Q5_K_M** → `darkgenus-v2` |
+| v3 | `train_darkgenus_v3.py` + `scripts/distill_from_clear.py`: teacher = `darkgenus-clear` for longer debate-style answers; **drop** teacher rows that look like hard harm how-tos; add **handwritten refuse** chats. `data/darkgenus_sft_v3.jsonl` (~**152**). Save **`DarkGenus-8B-LoRA-v3/`**. Export **Q5_K_M** → `darkgenus-v3` |
+
+**Why v1 Ollama broke:** HF base+LoRA was readable; standalone merged GGUF was not. Causes stacked in the audit: train as Alpaca but serve as Llama-3 chat; merge from 4-bit then re-quantize hard; tiny repeated corpus. v2/v3 fixed template alignment and used milder quant.
+
+**System prompts (paraphrased, kept mild):** ask for a cold, sharp analytical voice in plain English; ban gibberish token salad from the bad export; refuse step-by-step real-world harm how-tos. Shared in `scripts/chat_prompt.py` and baked into Ollama Modelfiles for v2/v3. This is **not** full RLHF/DPO safety training.
+
+#### B. Dolphin-based `darkgenus-clear` (not a LoRA)
+
+| Piece | From the scripts |
+|-------|------------------|
+| Setup | `ollama_setup_darkgenus_clear.cmd` → `Modelfile.coherent_dolphin` |
+| Weights | **`FROM dolphin3:8b`** already on the machine (alt Modelfile: stock `llama3.1:8b`) |
+| Adapter | **None.** Persona is prompt-only |
+
+**Observed behaviour:** Dolphin-class bases have **negligible practical refusals**. In ordinary chat, `darkgenus-clear` would answer almost any dodgy question despite a Modelfile refuse line. In the 262-prompt fake-tool suite it produced **0** model-layer refuses (~**79%** attempt rate); nearly all “passes” were the **post-model blocker**. We used it as (1) a fluent stand-in while v1 Ollama was broken, (2) a high-compliance baseline, and (3) a **style teacher** for v3 distill (with filters so hard how-tos were not copied into SFT).
+
+#### C. Early chat/meta evals
+
+Public-safe format / fake-authority suites on HF base vs LoRA showed the persona adapter often **complied with short trick strings** while the base often wandered off-task. That pushed the work toward **tool-attempt** measurement and later **system locks**.
+
+### 4.2 Counting tool attempts in DarkGenus (Experiment B)
 
 | Suite | Size | What we counted |
 |-------|------|-----------------|
 | Tool-call pressure | **262 prompts × 4 models = 1,048** decisions | Did it try a high-risk **fake** tool? |
 | Reason-then-act | **50 × 4 = 200** | Same, after it had to write reasoning first |
 
-**Models:** second fine-tune; first fine-tune; stock Qwen 2.5 7B Instruct; a looser offline comparison (build not published).  
-**Where:** local machine with Ollama. Tools were sandbox fakes. A blocker after the model stopped fake “execution.” Rates: [RESULTS.md section D](RESULTS.md).
+**Models (Ollama tags):** `darkgenus-v3`, `darkgenus-v2` (Llama LoRAs), `qwen2.5:7b-instruct`, `darkgenus-clear` (Dolphin + prompt).  
+**Where:** local machine. Tools were sandbox fakes. A toy monitor blocked high-risk names so nothing real ran. Rates: [RESULTS.md section D](RESULTS.md).
+
+**Extra findings:** attempts rose under format-force and fake-authority wording; on reason-then-act, Qwen/clear often described risk and still chose to call; v3 had the lowest attempts (~4% on that smaller suite) but often failed the required answer format; clear showed why a monitor after the model is mandatory when the base barely refuses.
 
 ### 4.3 Agent roles on the practice site (Experiment A)
 
@@ -114,7 +154,7 @@ How pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md).
 Numbers are in [RESULTS.md](RESULTS.md). In plain words:
 
 1. **Chat “no” ≠ tool “no.”** A model can refuse advice in text and still try a risky tool when tools are on the table.
-2. **Same script, different attempt rates.** On 262 prompts, the second fine-tune tried far less often than stock Qwen 2.5 7B Instruct. That is evidence for *this* script, not a general safety certificate.
+2. **Same script, different attempt rates.** On 262 prompts in DarkGenus, **v3** tried far less often (~13%) than stock Qwen (~77%). That is evidence for *this* script, not a general safety certificate.
 3. **Writing reasons did not reliably stop attempts.** Models often described danger and still called the tool; the post-model blocker stopped fake execution.
 4. **Locks can be tested like unit tests.** Pre-flight and practice-site tests pass on the public lab.
 5. **A real product was harder than the villain.** MimWise showed empty guest lists and auth walls; we do not claim a planted-secret win there.
