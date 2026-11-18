@@ -27,7 +27,7 @@ TEMPLATE = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Control Eval Lab figures</title>
+<title>Control Eval Lab: charts</title>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -131,28 +131,28 @@ TEMPLATE = r"""<!DOCTYPE html>
 </head>
 <body>
   <header>
-    <h1>Control Eval Lab figures</h1>
+    <h1>Control Eval Lab: charts</h1>
     <p class="lede" id="lede"></p>
     <div class="note" id="note"></div>
   </header>
   <main>
     <section>
-      <h2>Control fixture (toy app)</h2>
-      <p class="sub">Local disposable target with planted lab markers. Reproducible via pytest + deny-smoke.</p>
+      <h2>Practice website locks (re-runnable)</h2>
+      <p class="sub">Tiny local training site with a planted fake secret. These checks are what <code>deny-smoke</code> and the automatic tests cover.</p>
       <div class="kpis" id="fixture-kpis"></div>
     </section>
     <section>
-      <h2>MimWise (owner product, sanitized)</h2>
-      <p class="sub">Owner-authorized product outcomes only; no cookies, exact paths, or raw traces.</p>
+      <h2>MimWise (real owner product, high level)</h2>
+      <p class="sub">Authorized testing only. No cookies, exact paths, or raw logs on this page.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
     <section>
-      <h2>Synthetic-tool attempt rates</h2>
+      <h2>How often models tried fake risky tools</h2>
       <p class="sub" id="tool-sub"></p>
       <div class="chart" id="tool-chart"></div>
     </section>
     <section>
-      <h2>Reason-then-act (highlight)</h2>
+      <h2>After “write your reasons first”</h2>
       <p class="sub" id="rta-sub"></p>
       <div class="chart" id="rta-chart"></div>
     </section>
@@ -164,8 +164,8 @@ TEMPLATE = r"""<!DOCTYPE html>
   <footer>
     Built from <code>docs/data/aggregates.json</code>.
     Rebuild: <code>python docs/dashboard/build_dashboard.py</code>.
-    See also <a href="../RESULTS.md">RESULTS.md</a> and
-    <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
+    Tables: <a href="../RESULTS.md">RESULTS.md</a>.
+    Story: <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
   </footer>
 <script>
 const DATA = __DATA__;
@@ -205,36 +205,36 @@ document.getElementById("note").textContent = DATA.generated_note;
 
 const fx = DATA.control_fixture;
 document.getElementById("fixture-kpis").innerHTML = `
-  <div class="kpi"><div class="label">Deny-smoke</div><div class="value ok">${esc(fx.deny_smoke)}</div></div>
-  <div class="kpi"><div class="label">Pytest</div><div class="value ok">${esc(fx.pytest_passed)} passed</div></div>
+  <div class="kpi"><div class="label">Pre-flight locks</div><div class="value ok">${esc(fx.deny_smoke)}</div></div>
+  <div class="kpi"><div class="label">Automatic tests</div><div class="value ok">${esc(fx.pytest_passed)} passed</div></div>
   <div class="kpi"><div class="label">Notes (no guest)</div><div class="value">${esc(fx.notes_without_guest)}</div></div>
-  <div class="kpi"><div class="label">Notes (guest)</div><div class="value">${esc(fx.notes_with_guest)}</div></div>
-  <div class="kpi"><div class="label">Admin export</div><div class="value">${esc(fx.admin_export_with_guest)}</div></div>
+  <div class="kpi"><div class="label">Notes (after guest)</div><div class="value">${esc(fx.notes_with_guest)}</div></div>
+  <div class="kpi"><div class="label">Admin export as guest</div><div class="value">${esc(fx.admin_export_with_guest)}</div></div>
 `;
 
 const sa = DATA.mimwise_sanitized;
 document.getElementById("system-kpis").innerHTML = `
-  <div class="kpi"><div class="label">Unauth mutating</div><div class="value">${esc(sa.unauth_mutating_often)}</div></div>
+  <div class="kpi"><div class="label">No-login changes</div><div class="value">${esc(sa.unauth_mutating_often)}</div></div>
   <div class="kpi"><div class="label">Guest lists</div><div class="value">${esc(sa.guest_lists)}</div></div>
-  <div class="kpi"><div class="label">Upload w/o full auth</div><div class="value">${esc(sa.upload_without_full_auth)}</div></div>
-  <div class="kpi"><div class="label">Planted IDOR</div><div class="value">${esc(sa.cross_user_planted_secret_idor)}</div></div>
-  <div class="kpi"><div class="label">Evil / metadata</div><div class="value ok">${esc(sa.egress_evil_metadata)}</div></div>
+  <div class="kpi"><div class="label">Upload without full login</div><div class="value">${esc(sa.upload_without_full_auth)}</div></div>
+  <div class="kpi"><div class="label">Planted-secret win</div><div class="value">${esc(sa.cross_user_planted_secret_idor)}</div></div>
+  <div class="kpi"><div class="label">Wrong host / metadata</div><div class="value ok">${esc(sa.egress_evil_metadata)}</div></div>
 `;
 
 const tool = DATA.tool_attempt_suite;
 document.getElementById("tool-sub").textContent =
-  `${tool.description} (~${tool.n_prompts_per_model} prompts × ${tool.n_models} arms). Higher bar = more attempts.`;
+  `${tool.description} About ${tool.n_prompts_per_model} prompts × ${tool.n_models} models. Higher bar = more attempts.`;
 document.getElementById("tool-chart").innerHTML = tool.arms
   .map(a => renderBar(a.label, a.attempt_rate_pct, a.note))
   .join("");
 
 const rta = DATA.reason_then_act_suite;
 document.getElementById("rta-sub").textContent =
-  `${rta.description} (~${rta.n_prompts_per_model} prompts). Only arms with public numbers are drawn.`;
+  `${rta.description} About ${rta.n_prompts_per_model} prompts. Only models with a public number are drawn.`;
 document.getElementById("rta-chart").innerHTML = rta.arms
   .filter(a => a.attempt_rate_pct != null)
   .map(a => renderBar(a.label, a.attempt_rate_pct, a.note))
-  .join("") || "<p>No public numeric arms for this chart.</p>";
+  .join("") || "<p>No public numbers for this chart.</p>";
 
 document.getElementById("takeaways").innerHTML = (DATA.takeaways || [])
   .map(t => `<li>${esc(t)}</li>`).join("");

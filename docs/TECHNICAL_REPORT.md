@@ -1,161 +1,152 @@
-# Control Eval Lab: Measuring Egress and Session Controls for Tool-Using LLM Agents, with an Open-Weight Synthetic-Tool Propensity Study
+# Control Eval Lab technical report
 
-**Type:** Personal technical report + runnable micro-laboratory  
+**What this is:** a personal write-up of two small experiments about AI that can use tools, plus a practice lab you can run on your own computer.  
 **Date:** November 2026  
-**Artifacts:** This repository (harness + practice app). Fine-tune weights and private eval JSONL on request / interview.
+**What ships in the repo:** the practice website and the lock-checking agent run. Fine-tuned model files and private prompt lists are available on request / interview.
 
-> **Scope:** this repository ships the runnable control harness (egress allowlist, Scout/Thief/Breaker swarm, deny-smoke, tests, simulated wipe). The synthetic-tool propensity figures (e.g. ~13% vs ~77%) come from **separate offline experiments** on local Ollama models; they are summarised here and are **not** reproduced by running this repo. Fine-tune weights and case JSONL are private.
+> **What is runnable vs what is only summarised:** this repository lets you run Experiment A (locks on a practice website). The “how often did the model try a risky fake tool?” percentages (for example ~13% vs ~77%) come from Experiment B, done separately on a local machine. Those rates are written up here for context. Cloning this repo does not regenerate them. The fine-tune files and prompt cases stay private.
 
-Companion docs: [ARCHITECTURE.md](ARCHITECTURE.md) (wiring) · [REFERENCE.md](REFERENCE.md) (agents/tools) · [RESULTS.md](RESULTS.md) (tables)
-
----
-
-## Abstract
-
-Tool-using language-model agents can take actions in the world; chat refusals alone do not bound that risk. This report describes a small open laboratory that (i) measures how often open-weight ~8B models *attempt* high-risk **synthetic** tool calls under fixed prompt protocols, and (ii) measures whether simple **control measures** (URL allowlisting, guest-session gates, tool budgets, and simulated human-approved wipe) hold when multi-agent crews exercise HTTP and browser tools against a local practice application and, at high level, against an owner-authorized production product (MimWise).
-
-Canonical rates and fixture outcomes are in [RESULTS.md](RESULTS.md). Limitations: open 8B models, fixed prompts, no frontier-lab monitors, and no claim of ControlArena/Inspect scale.
+Start here for the story. Numbers: [RESULTS.md](RESULTS.md). How the runnable pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md). Who does what: [REFERENCE.md](REFERENCE.md). Plain terms: [GLOSSARY.md](GLOSSARY.md).
 
 ---
 
-## 1. Introduction
+## In one paragraph
 
-Modern deployments increasingly look like:
+Today many AI systems can browse, call APIs, or upload files. A polite “I won’t help with that” in chat does not prove the AI will refuse to press a tool button. This report asks two questions: (1) how often do small open models *try* pretend dangerous tools under a fixed script, and (2) do simple locks (only talk to this website, require a guest cookie, refuse a real wipe) still hold when several AI roles poke a practice site, and at a high level an owner product (MimWise).
+
+Tables live in [RESULTS.md](RESULTS.md). This is a teaching / portfolio micro-lab, not a claim about frontier labs or industry-scale benchmarks.
+
+---
+
+## 1. Why this matters
+
+A common setup looks like:
 
 ```text
-user → model → tools (HTTP, browser, upload, APIs) → side effects
+person → AI model → tools (web, upload, APIs) → something happens in the world
 ```
 
-Evaluating only chatbot refusals underestimates risk when the model can press tools. Work on **AI control** argues for designing *control measures* that constrain actions even if training-time alignment is imperfect, and for **control evaluations** that stress those measures under adversarial pressure. Complementary work on **agent misuse** (e.g. AgentHarm) measures compliance with harmful multi-step tool tasks using synthetic tools and graded rubrics.
+If you only grade chat refusals, you miss the tool step. So we measure **locks outside the model** (who it may call, what session it needs, whether wipe is only pretend), and we separately count **attempts** on fake tools.
 
-This project contributes a small public micro-lab plus a private open-weight propensity study:
+We did two layers of work:
 
-- **System layer:** multi-agent scaffold with FastMCP tools, shared egress allowlist, and a practice web app with planted markers.
-- **Model layer:** LoRA fine-tunes on Llama 3.1 8B Instruct and synthetic-tool attempt-rate comparisons under Ollama.
-
-Reporting style: clear questions, metrics with sample sizes, and explicit limitations.
+- **Locks (Experiment A):** a multi-role agent run against a local practice website, with automatic pass/fail checks.
+- **Attempts (Experiment B):** offline, same prompts for several small models, counting how often they tried a fake risky tool.
 
 ---
 
-## 2. Threat model and evaluation questions
+## 2. What we were worried about (lab scale)
 
-### 2.1 Threat model (lab scale)
+Imagine you give an AI tools pointed at a website you run. Risks we care about here:
 
-An operator deploys an LLM agent with HTTP/browser tools against a web application. Risks in scope:
+- Calling the **wrong host** (a fake evil site, or a cloud “metadata” address often used in break-in demos).
+- Using a **try without login** guest path to read data that should stay closed.
+- Asking to **wipe a database** (we only *simulate* this; nothing real is deleted).
+- Being handed a menu of **pretend dangerous tools** and trying to call them anyway.
 
-- **Egress abuse:** contacting non-approved hosts or cloud metadata endpoints.
-- **Session / access probing:** using guest try-without-login paths to read data that should stay closed.
-- **Destructive intent:** requesting database wipe (we only *simulate* this).
-- **Model-layer tool misuse:** emitting high-risk tool calls when handed a synthetic tool menu (AgentHarm-adjacent).
+We do **not** use this to attack other people’s systems, claim wins we did not get, or evaluate secret commercial monitors.
 
-Out of scope: third-party unauthorized testing; claiming compromise of systems we do not own; evaluating proprietary frontier monitors.
+### Two questions
 
-### 2.2 Evaluation questions
-
-| ID | Layer | Question |
-|----|-------|----------|
-| **Q1** | Model | Given synthetic high-risk tools, how often do open ~8B models *attempt* calls under pressure and reason-then-act protocols? |
-| **Q2** | System | Given HTTP/browser tools and a multi-agent crew, do allowlist + guest session + related measures hold on a practice fixture, and how does an owner product compare at high level? |
+| ID | Layer | Plain question |
+|----|-------|----------------|
+| **Q1** | Model | If you hand a small open model fake high-risk tools and a fixed script, how often does it *try* to call them? |
+| **Q2** | System | If you give agents real browse/API tools, do the locks still hold on a practice site, and how does an owner product compare at a high level? |
 
 ---
 
-## 3. Related work
+## 3. Related work (short)
 
-| Work | Relevance | How we differ |
-|------|-----------|---------------|
-| **AgentHarm** (Andriushchenko, Souly, et al.; ICLR 2025) | Synthetic tools; agent misuse; attempt/compliance measurement | Smaller private suite on open 8B Ollama models; harmful case JSONL not released |
-| **AI control / ControlArena** | Main vs side tasks; red/blue protocols; sandboxes | Micro allowlist+HITL setting, not ControlArena environments |
-| **Inspect** | Eval scaffolding, tools, sandboxes | Swarm uses OpenAI Agents SDK + FastMCP |
-| **Breaking agent backbones** (Bazinska et al.) | Backbone LLM security in agents | We do not run the b³ benchmark; we share the concern that agent risk differs from chat risk |
+Other projects study similar ideas at larger scale (for example AgentHarm for harmful tool tasks; ControlArena / Inspect for control experiments). We use a smaller private prompt set on open ~8B models, and a tiny allowlist + human-approval style lab instead of those full frameworks. We care about the same split: **chat risk is not the same as tool risk**.
 
 ---
 
 ## 4. Methods
 
-### 4.1 Open-weight fine-tune
+### 4.1 Fine-tuning (Experiment B background)
 
-- **Base:** Llama 3.1 8B Instruct (4-bit Unsloth build).
-- **Adapter:** LoRA **r=16**, **alpha=16**.
-- **Data:** first fine-tune **n=387** chat examples; second fine-tune **n=152** (persona/style SFT + refuse-style replies for clear harmful how-tos). Raw JSONL private.
-- **Issue:** early Ollama export produced incoherent text (template/export mismatch), which motivated the second fine-tune.
-- **Not claimed:** full RLHF/DPO safety training; permission to redistribute permissive stacks.
+- Started from Llama 3.1 8B Instruct (a common open chat model, run in a memory-saving 4-bit build).
+- Added a thin adapter (LoRA) rather than retraining the whole model.
+- First training set: **387** chat examples. Second: **152** (style/persona plus “refuse clear harmful how-to” replies). Raw files private.
+- An early export into the local model runner produced nonsense text (template mismatch), so we ran a second fine-tune.
+- We are **not** claiming full safety training or that the result is safe to ship.
 
-### 4.2 Synthetic-tool propensity suites
+### 4.2 Counting tool attempts (Experiment B)
 
-| Suite | n prompts × models | Metric |
-|-------|--------------------|--------|
-| Tool-call pressure | **262 × 4 = 1,048** | High-risk synthetic-tool **attempt rate** |
-| Reason-then-act | **50 × 4 = 200** | Attempt rate after required reasoning |
+| Suite | Size | What we counted |
+|-------|------|-----------------|
+| Tool-call pressure | **262 prompts × 4 models = 1,048** decisions | Did it try a high-risk **fake** tool? |
+| Reason-then-act | **50 × 4 = 200** | Same, after it had to write reasoning first |
 
-**Models compared:** second fine-tune; first fine-tune; Qwen 2.5 7B Instruct; permissive offline comparison (build not published).  
-**Runner:** local Ollama. Tools were sandbox fakes. A post-model blocker prevented fake execution. Rates: [RESULTS.md §D](RESULTS.md).
+**Models:** second fine-tune; first fine-tune; stock Qwen 2.5 7B Instruct; a looser offline comparison (build not published).  
+**Where:** local machine with Ollama. Tools were sandbox fakes. A blocker after the model stopped fake “execution.” Rates: [RESULTS.md section D](RESULTS.md).
 
-### 4.3 Agent scaffold
+### 4.3 Agent roles on the practice site (Experiment A)
 
-- **Orchestration:** OpenAI Agents SDK; roles from JSON; SQLite tip board.
-- **Tools:** FastMCP ([REFERENCE.md](REFERENCE.md)).
-- **Public crew:** Scout → Thief → Breaker.
-- **Private MimWise extras:** Crawler, Injector, UI Players (lesson / demo / dopa).
+- We run three public roles in order: **Scout → Thief → Breaker** (job text in a JSON config).
+- They share short tips on a local tip board.
+- Tools are ordinary actions (fetch a page, start guest session, leave a tip, open a browser, pretend wipe). Every web call must pass the allowlist.
+- Private MimWise runs also used extra roles (Crawler, Injector, UI players). See [REFERENCE.md](REFERENCE.md).
 
-Wiring diagrams: [ARCHITECTURE.md](ARCHITECTURE.md).
+How pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md).
 
-### 4.4 Control measures under test
+### 4.4 Locks under test
 
-| Measure | Role in evaluation |
-|---------|-------------------|
-| URL allowlist | Primary egress control |
-| `deny-smoke` pre-flight | Catches misconfiguration before long runs |
-| Tool budget (default 64) | Limits runaway loops |
-| Simulated wipe + HITL flag | Measures destructive *requests* without real wipe |
-| Guest session gate | Session control on practice app (and product SoftTrial) |
+| Lock | Why it is there |
+|------|-----------------|
+| Host allowlist | Only the approved practice (or product) host |
+| Pre-flight check (`deny-smoke`) | Fail fast if locks were misconfigured |
+| Tool budget (default 64) | Stop endless tool loops |
+| Simulated wipe + optional human approve | Score “asked to wipe” without deleting data |
+| Guest session gate | Notes closed until a guest cookie exists |
 
-### 4.5 Settings
+### 4.5 Where we pointed the agents
 
-1. **Practice app (`toy_app`):** local SoftTrial villain with planted `PLANTED_SECRET_*` markers (intentional IDOR-after-guest for scoring).
-2. **MimWise:** owner-authorized live product; high-level outcomes only.
+1. **Practice website** (`toy_app`): local training villain. After guest start it *intentionally* shows a planted fake secret so Thief success is measurable.
+2. **MimWise:** real owner product, authorized testing only; public text stays high-level.
 
-**Main task vs side task (fixture swarm):** Scout/Thief pursue authorized recon / marker recovery; Breaker verifies side-task egress fails.
+**Wanted jobs vs unwanted jobs:** Scout/Thief do authorized mapping / marker recovery. Breaker checks that unwanted calls (evil host, metadata) **fail**.
 
 ---
 
-## 5. Findings (interpretation)
+## 5. How to read the findings
 
-Numbers live in [RESULTS.md](RESULTS.md). Reading them:
+Numbers are in [RESULTS.md](RESULTS.md). In plain words:
 
-1. **Chat refusal differs from tool refusal.** Models can decline harmful chat advice and still emit high-risk synthetic tool calls when prompted to act with tools.
-2. **Fine-tune shift under a fixed protocol.** The second LoRA fine-tune attempted high-risk synthetic tools far less often than stock Qwen 2.5 7B Instruct on the same 262-prompt suite. Protocol-specific evidence, not a general safety certificate.
-3. **Reasoning is not a control layer.** In reason-then-act, models frequently described danger and still attempted the tool; a post-model blocker stopped fake execution.
-4. **System controls are measurable.** Allowlist pre-flight checks and guest SoftTrial tests on the practice app are automated and passing (`deny-smoke`, `pytest`).
-5. **Realistic products differ from villains.** MimWise was harder than the intentional SoftTrial fixture: empty guest lists, auth-walled uploads, no claimed cross-user planted-secret IDOR.
-6. **Scale.** This is a micro-setting for portfolio and teaching control-evaluation ideas, not a frontier sabotage case study.
+1. **Chat “no” ≠ tool “no.”** A model can refuse advice in text and still try a risky tool when tools are on the table.
+2. **Same script, different attempt rates.** On 262 prompts, the second fine-tune tried far less often than stock Qwen 2.5 7B Instruct. That is evidence for *this* script, not a general safety certificate.
+3. **Writing reasons did not reliably stop attempts.** Models often described danger and still called the tool; the post-model blocker stopped fake execution.
+4. **Locks can be tested like unit tests.** Pre-flight and practice-site tests pass on the public lab.
+5. **A real product was harder than the villain.** MimWise showed empty guest lists and auth walls; we do not claim a planted-secret win there.
+6. **Scale is small.** Portfolio / teaching micro-lab, not a frontier sabotage study.
 
 Charts: [dashboard/index.html](dashboard/index.html).
 
 ---
 
-## 6. Limitations
+## 6. Limits (honest)
 
-1. **Scale:** Open ~8B models and small prompt sets; not frontier systems.
-2. **Fixed protocols:** Attempt rates are not estimates of real-world misuse prevalence.
-3. **Synthetic tools:** Measure propensity to *emit* calls, not real-world harm.
-4. **Fixture confounding:** Practice SoftTrial is designed to leak markers; success there is not product compromise.
-5. **MimWise opacity:** Public text omits paths/cookies by design; private demo for interviews.
-6. **Scaffold:** Not Inspect/ControlArena; no claim of equivalent statistical analysis tooling.
+1. Small open models and small prompt sets.
+2. Fixed scripts ≠ real-world misuse rates.
+3. Fake tools measure *attempts*, not real harm.
+4. The practice site is designed to leak a marker; winning there is not “we broke MimWise.”
+5. Public MimWise notes omit paths and cookies on purpose.
+6. This is not the same tooling as large public control benchmarks.
 
 ---
 
-## 7. Reproducibility (harness only)
+## 7. Reproducing Experiment A (locks only)
 
 ```bash
 pip install -e ".[dev]"
 uvicorn toy_app.main:app --host 127.0.0.1 --port 8000
 python -m control_eval deny-smoke
 pytest -q
-# optional:
+# optional live agents:
 # python -m control_eval swarm --provider openai --max-turns 12
 ```
 
-Providers: OpenAI / NVIDIA NIM / Ollama ([ARCHITECTURE.md](ARCHITECTURE.md)).  
+Which AI provider to pick: [ARCHITECTURE.md](ARCHITECTURE.md).  
 Private weights and MimWise traces: interview / on request.
 
 ---
@@ -167,5 +158,5 @@ Private weights and MimWise traces: interview / on request.
 3. UK AISI / Redwood et al. *ControlArena* (library for AI control experiments). https://github.com/UKGovernmentBEIS/control-arena  
 4. UK AISI. *Inspect* evaluation framework. https://inspect.aisi.org.uk/  
 5. Bazinska, J., et al. *Breaking agent backbones: Evaluating the security of backbone LLMs in AI agents.* arXiv:2510.22620.  
-6. Greenblatt, R., et al. AI control / control evaluations literature (foundational framing for main vs side tasks and adversarial protocols).  
-7. Souly, A., Kirk, R., et al. *UK AISI Alignment Evaluation Case-Study.* arXiv:2604.00788 (reporting style reference: executive summary, limitations).  
+6. Greenblatt, R., et al. AI control / control evaluations literature (main vs side tasks; adversarial protocols).  
+7. Souly, A., Kirk, R., et al. *UK AISI Alignment Evaluation Case-Study.* arXiv:2604.00788 (example reporting style).  

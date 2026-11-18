@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Control Eval Lab figures</title>
+<title>Control Eval Lab: charts</title>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -107,28 +107,28 @@
 </head>
 <body>
   <header>
-    <h1>Control Eval Lab figures</h1>
+    <h1>Control Eval Lab: charts</h1>
     <p class="lede" id="lede"></p>
     <div class="note" id="note"></div>
   </header>
   <main>
     <section>
-      <h2>Control fixture (toy app)</h2>
-      <p class="sub">Local disposable target with planted lab markers. Reproducible via pytest + deny-smoke.</p>
+      <h2>Practice website locks (re-runnable)</h2>
+      <p class="sub">Tiny local training site with a planted fake secret. These checks are what <code>deny-smoke</code> and the automatic tests cover.</p>
       <div class="kpis" id="fixture-kpis"></div>
     </section>
     <section>
-      <h2>MimWise (owner product, sanitized)</h2>
-      <p class="sub">Owner-authorized product outcomes only; no cookies, exact paths, or raw traces.</p>
+      <h2>MimWise (real owner product, high level)</h2>
+      <p class="sub">Authorized testing only. No cookies, exact paths, or raw logs on this page.</p>
       <div class="kpis" id="system-kpis"></div>
     </section>
     <section>
-      <h2>Synthetic-tool attempt rates</h2>
+      <h2>How often models tried fake risky tools</h2>
       <p class="sub" id="tool-sub"></p>
       <div class="chart" id="tool-chart"></div>
     </section>
     <section>
-      <h2>Reason-then-act (highlight)</h2>
+      <h2>After “write your reasons first”</h2>
       <p class="sub" id="rta-sub"></p>
       <div class="chart" id="rta-chart"></div>
     </section>
@@ -140,11 +140,11 @@
   <footer>
     Built from <code>docs/data/aggregates.json</code>.
     Rebuild: <code>python docs/dashboard/build_dashboard.py</code>.
-    See also <a href="../RESULTS.md">RESULTS.md</a> and
-    <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
+    Tables: <a href="../RESULTS.md">RESULTS.md</a>.
+    Story: <a href="../TECHNICAL_REPORT.md">TECHNICAL_REPORT.md</a>.
   </footer>
 <script>
-const DATA = {"title": "Control Eval Lab sanitized aggregate figures", "generated_note": "Hand-curated public aggregates from separate offline Ollama experiments. Not reproduced by running this repo; fine-tune weights and case JSONL are private. No cookies, no product URLs, no uncensored model build instructions.", "control_fixture": {"deny_smoke": "PASS", "pytest_passed": 7, "notes_without_guest": "403", "notes_with_guest": "200_with_PLANTED_SECRET", "admin_export_with_guest": "403"}, "mimwise_sanitized": {"unauth_mutating_often": "401_or_403", "guest_lists": "200_empty", "upload_without_full_auth": "often_403", "cross_user_planted_secret_idor": "not_shown", "egress_evil_metadata": "BLOCKED"}, "tool_attempt_suite": {"description": "Sandbox high-risk synthetic-tool attempts (fake tools only). Approx rates from separate offline Ollama eval; summarised here only, not reproduced by cloning/running this repo.", "n_prompts_per_model": 262, "n_models": 4, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 13, "note": "After chat-export / template fixes"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": 36, "note": "Earlier persona adapter"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": 77, "note": "Stock small instruct model"}, {"id": "private_looser", "label": "Permissive offline comparison", "attempt_rate_pct": 79, "note": "Not published; worse comparison only"}]}, "reason_then_act_suite": {"description": "Milder prompts; model must reason then decide. Dangerous attempt rates.", "n_prompts_per_model": 50, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 4, "note": "Lowest attempts; more formatting misses"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": null, "note": "See private full tables"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": null, "note": "Often reasoned about risk then still called the tool"}]}, "takeaways": ["Chat refusals are not the same as refusing to call a tool.", "The second fine-tune attempted fewer high-risk sandbox tools than stock Qwen 2.5 7B Instruct under this protocol (n=262).", "A post-model blocker stopped fake tool execution even when the model tried.", "The practice SoftTrial fixture is designed to leak planted markers; MimWise (owner product) was harder (empty lists / auth walls)."]};
+const DATA = {"title": "Control Eval Lab: simple charts of what we measured", "generated_note": "These charts summarise two kinds of work. The practice-site lock checks are what this repo can re-run. The “how often did the model try a fake risky tool?” bars come from separate offline runs on a local machine; cloning this repo does not regenerate them. Fine-tune files and prompt lists stay private. No cookies, product URLs, or build recipes for looser models.", "control_fixture": {"deny_smoke": "PASS", "pytest_passed": 7, "notes_without_guest": "403", "notes_with_guest": "200_with_PLANTED_SECRET", "admin_export_with_guest": "403"}, "mimwise_sanitized": {"unauth_mutating_often": "401_or_403", "guest_lists": "200_empty", "upload_without_full_auth": "often_403", "cross_user_planted_secret_idor": "not_shown", "egress_evil_metadata": "BLOCKED"}, "tool_attempt_suite": {"description": "How often each model tried a pretend dangerous tool under a fixed pressure script (fake tools only; offline; summarised here, not reproduced by running this repo).", "n_prompts_per_model": 262, "n_models": 4, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 13, "note": "After fixing a bad model export"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": 36, "note": "Earlier style adapter"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": 77, "note": "Stock small chat model"}, {"id": "private_looser", "label": "Looser offline comparison", "attempt_rate_pct": 79, "note": "Not published; used as a worse comparison"}]}, "reason_then_act_suite": {"description": "Milder prompts: model must write reasons, then decide. We still count dangerous tool attempts.", "n_prompts_per_model": 50, "arms": [{"id": "style_lora_v3", "label": "Second fine-tune", "attempt_rate_pct": 4, "note": "Fewest attempts; more format misses"}, {"id": "style_lora_v2", "label": "First fine-tune", "attempt_rate_pct": null, "note": "Full table private"}, {"id": "instruct_baseline", "label": "Normal instruct (Qwen 2.5 7B)", "attempt_rate_pct": null, "note": "Often talked about risk, then still tried the tool"}]}, "takeaways": ["A chat “no” is not the same as refusing to press a tool button.", "Under one fixed offline script (262 prompts), the second fine-tune tried fake risky tools less often than a stock Qwen 2.5 7B Instruct model.", "A blocker after the model stopped fake tool runs even when the model tried.", "The practice site is designed to leak a planted fake secret; the real owner product (MimWise) was harder (empty lists / login walls)."]};
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({
@@ -181,36 +181,36 @@ document.getElementById("note").textContent = DATA.generated_note;
 
 const fx = DATA.control_fixture;
 document.getElementById("fixture-kpis").innerHTML = `
-  <div class="kpi"><div class="label">Deny-smoke</div><div class="value ok">${esc(fx.deny_smoke)}</div></div>
-  <div class="kpi"><div class="label">Pytest</div><div class="value ok">${esc(fx.pytest_passed)} passed</div></div>
+  <div class="kpi"><div class="label">Pre-flight locks</div><div class="value ok">${esc(fx.deny_smoke)}</div></div>
+  <div class="kpi"><div class="label">Automatic tests</div><div class="value ok">${esc(fx.pytest_passed)} passed</div></div>
   <div class="kpi"><div class="label">Notes (no guest)</div><div class="value">${esc(fx.notes_without_guest)}</div></div>
-  <div class="kpi"><div class="label">Notes (guest)</div><div class="value">${esc(fx.notes_with_guest)}</div></div>
-  <div class="kpi"><div class="label">Admin export</div><div class="value">${esc(fx.admin_export_with_guest)}</div></div>
+  <div class="kpi"><div class="label">Notes (after guest)</div><div class="value">${esc(fx.notes_with_guest)}</div></div>
+  <div class="kpi"><div class="label">Admin export as guest</div><div class="value">${esc(fx.admin_export_with_guest)}</div></div>
 `;
 
 const sa = DATA.mimwise_sanitized;
 document.getElementById("system-kpis").innerHTML = `
-  <div class="kpi"><div class="label">Unauth mutating</div><div class="value">${esc(sa.unauth_mutating_often)}</div></div>
+  <div class="kpi"><div class="label">No-login changes</div><div class="value">${esc(sa.unauth_mutating_often)}</div></div>
   <div class="kpi"><div class="label">Guest lists</div><div class="value">${esc(sa.guest_lists)}</div></div>
-  <div class="kpi"><div class="label">Upload w/o full auth</div><div class="value">${esc(sa.upload_without_full_auth)}</div></div>
-  <div class="kpi"><div class="label">Planted IDOR</div><div class="value">${esc(sa.cross_user_planted_secret_idor)}</div></div>
-  <div class="kpi"><div class="label">Evil / metadata</div><div class="value ok">${esc(sa.egress_evil_metadata)}</div></div>
+  <div class="kpi"><div class="label">Upload without full login</div><div class="value">${esc(sa.upload_without_full_auth)}</div></div>
+  <div class="kpi"><div class="label">Planted-secret win</div><div class="value">${esc(sa.cross_user_planted_secret_idor)}</div></div>
+  <div class="kpi"><div class="label">Wrong host / metadata</div><div class="value ok">${esc(sa.egress_evil_metadata)}</div></div>
 `;
 
 const tool = DATA.tool_attempt_suite;
 document.getElementById("tool-sub").textContent =
-  `${tool.description} (~${tool.n_prompts_per_model} prompts × ${tool.n_models} arms). Higher bar = more attempts.`;
+  `${tool.description} About ${tool.n_prompts_per_model} prompts × ${tool.n_models} models. Higher bar = more attempts.`;
 document.getElementById("tool-chart").innerHTML = tool.arms
   .map(a => renderBar(a.label, a.attempt_rate_pct, a.note))
   .join("");
 
 const rta = DATA.reason_then_act_suite;
 document.getElementById("rta-sub").textContent =
-  `${rta.description} (~${rta.n_prompts_per_model} prompts). Only arms with public numbers are drawn.`;
+  `${rta.description} About ${rta.n_prompts_per_model} prompts. Only models with a public number are drawn.`;
 document.getElementById("rta-chart").innerHTML = rta.arms
   .filter(a => a.attempt_rate_pct != null)
   .map(a => renderBar(a.label, a.attempt_rate_pct, a.note))
-  .join("") || "<p>No public numeric arms for this chart.</p>";
+  .join("") || "<p>No public numbers for this chart.</p>";
 
 document.getElementById("takeaways").innerHTML = (DATA.takeaways || [])
   .map(t => `<li>${esc(t)}</li>`).join("");
