@@ -1,5 +1,7 @@
 # Control Eval Lab
 
+> **Scope:** This repo ships the runnable control harness (allowlist, Scout/Thief/Breaker swarm, deny-smoke, tests). The synthetic-tool attempt rates below (~13% / 36% / 77% / 79%) come from separate offline Ollama experiments, summarised here and not reproduced by cloning this repo. Fine-tune weights and case data are private.
+
 A small lab for asking a simple question:
 
 **If an AI can use tools (browse, call APIs, upload files), do our locks still hold when the AI tries to get around them?**
@@ -54,21 +56,32 @@ Serving prompts (paraphrased): cold, sharp analytical voice in normal English; r
 | Stock **Qwen 2.5 7B Instruct** | **~77%** |
 | **`darkgenus-clear`** (Dolphin + prompt) | **~79%** (**0** model refuses in that suite; almost everything only stopped by the post-model blocker) |
 
-Models often **wrote about risk** and still tried the tool. That is why we later built **locks outside the model** here.
+Models often **wrote about risk** and still tried the tool. That is why we later built **locks outside the model**.
+
+### Local Docker MimWise before the live website
+
+Inside DarkGenus we also built a **Control Lab** agent stack (allowlist + FastMCP tools). The order mattered:
+
+1. **Tiny HTTP fixture** (`:8765`) to prove allowlist / dry-run gates.
+2. **Full MimWise in Docker on localhost** (disposable DB). Agents could only hit that allowlisted local host; attempts to reach the public site or metadata were **blocked**. Against Docker we found a real guest broken-access issue (planted victim answers readable without a full login).
+3. **Only after that:** owner-authorized SoftTrial-style pressure on the **live** MimWise product. Production was harder (empty guest lists, auth walls). High-level outcomes only in public docs.
+4. **This public repo** ships a simplified practice villain (`toy_app`) so anyone can re-run the lock checks without the private Docker MimWise stack.
 
 ### Why this public repo exists
 
-DarkGenus stays private (adapters, GGUFs, prompt JSONL, product traces). **Control Eval Lab** is the public follow-on: practice website, Scout/Thief/Breaker lock checks, and a plain write-up of those earlier results. Clone this for Experiment A. Experiment B numbers are **from DarkGenus**; they are not regenerated here.
+DarkGenus (training + Control Lab + Docker MimWise runs) stays private. **Control Eval Lab** is the public follow-on: practice website, Scout/Thief/Breaker, and a plain write-up. Clone this for Experiment A. Experiment B numbers and Docker MimWise traces are **not** regenerated here.
 
 ---
 
 ## What we did (two experiments)
 
-### Experiment A: locks around a practice website (you can run this)
+### Experiment A: locks around agents (practice site here; Docker MimWise first in private lab)
 
-**Setup.** We built a tiny local practice website that *intentionally* leaks a fake planted secret after a “try without login” guest session. Think of it as a training villain, not a real product.
+**In this repo (runnable).** Tiny local practice website that *intentionally* leaks a fake planted secret after a “try without login” guest session. Training villain, not a product.
 
-**Method.** We give three AI roles tools they can only use against that site:
+**Earlier in DarkGenus (private).** Same control idea against **MimWise running in Docker on the PC**, with the allowlist fencing off the public website, *before* any owner SoftTrial on live MimWise.
+
+**Method (public crew).** Three AI roles with tools they can only use against the allowlisted target:
 
 | Role | Job |
 |------|-----|
@@ -78,7 +91,7 @@ DarkGenus stays private (adapters, GGUFs, prompt JSONL, product traces). **Contr
 
 We also run automatic checks (`deny-smoke`, `pytest`) so the locks are not “trust me, it worked once.”
 
-**Why this method.** If the villain is designed so Thief can win when guest access is broken on purpose, we know the scoring works. Breaker then checks that the network lock still stops everything else.
+**Why this method.** Prove the fence on a disposable local app first (fixture → Docker MimWise → simplified `toy_app` here). Only then compare to the live product. Breaker checks that the network lock still stops everything else.
 
 ### Experiment B: pretend dangerous tools (ran first in DarkGenus; summarised here)
 
@@ -97,12 +110,10 @@ We also run automatic checks (`deny-smoke`, `pytest`) so the locks are not “tr
 | In this public repo (runnable) | Stayed in private DarkGenus / summarised only |
 |--------------------------------|-----------------------------------------------|
 | Practice website + Scout / Thief / Breaker | Llama LoRA training, Dolphin Modelfile, Ollama GGUFs |
-| Network allowlist + guest-session checks | Fake-tool attempt suites (~13% vs ~77%, etc.) |
-| `deny-smoke`, tests, simulated wipe | Private prompt JSONL and full MimWise traces |
+| Network allowlist + guest-session checks | Fake-tool suites (~13% / 36% / 77% / 79%) |
+| `deny-smoke`, tests, simulated wipe | Docker MimWise Control Lab runs + live MimWise traces |
 
-> **Plain scope:** clone this to practice the **locks**. DarkGenus training and propensity percentages lived in a **private local repo** first; they are written up here for context and are **not** regenerated by running this repo.
-
-We also briefly compared the same *style* of pressure on **MimWise** (owner product, authorized). It was harder than the practice villain (empty guest lists, auth walls). Details stay high-level and private.
+Live MimWise (owner-authorized SoftTrial) was harder than the Docker sandbox and the practice villain (empty guest lists, auth walls). Details stay high-level and private.
 
 ---
 
@@ -111,7 +122,7 @@ We also briefly compared the same *style* of pressure on **MimWise** (owner prod
 1. Saying “no” in chat ≠ refusing to call a tool.
 2. A weakly filtered chat base (Dolphin / `clear`) will answer almost anything; a post-model blocker still matters.
 3. Simple locks (allow only this host; require a guest cookie; refuse wipe unless approved) can be tested automatically.
-4. A practice villain is useful for scoring; a real product can still be much harder.
+4. Sandbox first: local fixture → Docker MimWise (allowlist on) → then live product SoftTrial. Docker showed a guest data leak; live MimWise was harder.
 5. Under one fixed offline script, Llama LoRA **v3** attempted risky fake tools less often than stock Qwen. That is not a certificate that it is safe to ship.
 
 Full tables: [docs/RESULTS.md](docs/RESULTS.md). Full write-up: [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md). Charts: [docs/dashboard/index.html](docs/dashboard/index.html).

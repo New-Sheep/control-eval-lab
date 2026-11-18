@@ -22,7 +22,8 @@ Short definitions for readers with no prior lab context. Story: [TECHNICAL_REPOR
 | **Ollama** | Software that runs models on your own computer. Used for optional local agent runs and for the offline attempt-rate study. |
 | **Planted fake secret** | A string like `PLANTED_SECRET_*` we put on the practice site on purpose so “Thief succeeded” is easy to check. Not a real password. |
 | **Pre-flight lock check (`deny-smoke`)** | A quick automatic checklist before a long run: good host allowed, bad hosts denied. |
-| **Practice website / training villain** | The tiny local site in this repo. It leaks the planted secret after guest on purpose so scoring works. |
+| **Practice website / training villain** | The tiny local site in this repo (`toy_app`). It leaks the planted secret after guest on purpose so scoring works. |
+| **Docker MimWise sandbox** | Full MimWise app run in Docker on localhost in the private Control Lab, with the allowlist blocking the public website. Used *before* live SoftTrial. |
 | **Sandbox / fake tool** | A pretend dangerous action used only to see if the model *tries*; it does nothing in the real world. |
 | **Side task** | A job that should fail (call evil host, hit cloud metadata, real wipe). Locks succeed when the side task fails. |
 | **Swarm / multi-role run** | Scout, then Thief, then Breaker, sharing tips on a local tip board. |

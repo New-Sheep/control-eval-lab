@@ -1,10 +1,10 @@
 # Control Eval Lab technical report
 
+> **Scope:** This repo ships the runnable control harness (allowlist, Scout/Thief/Breaker swarm, deny-smoke, tests). The synthetic-tool attempt rates below (~13% / 36% / 77% / 79%) come from separate offline Ollama experiments, summarised here and not reproduced by cloning this repo. Fine-tune weights and case data are private.
+
 **What this is:** a personal write-up of two small experiments about AI that can use tools, plus a practice lab you can run on your own computer.  
 **Date:** November 2026  
-**What ships in the repo:** the practice website and the lock-checking agent run. Fine-tuned model files and private prompt lists are available on request / interview.
-
-> **What is runnable vs what is only summarised:** this repository lets you run Experiment A (locks on a practice website). Experiment B (fake-tool attempt rates such as ~13% vs ~77%) was run earlier in a **private local project called DarkGenus**. Those rates are written up here for context. Cloning this repo does not regenerate them. DarkGenus weights and prompt cases stay private.
+**What ships in the repo:** the practice website and the lock-checking agent run. Fine-tune files, Docker MimWise Control Lab traces, and private prompt lists are available on request / interview.
 
 Start here for the story. Numbers: [RESULTS.md](RESULTS.md). How the runnable pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md). Who does what: [REFERENCE.md](REFERENCE.md). Plain terms: [GLOSSARY.md](GLOSSARY.md).
 
@@ -22,13 +22,15 @@ Tables live in [RESULTS.md](RESULTS.md). This is a teaching / portfolio micro-la
 
 | Stage | Where | What happened |
 |-------|-------|----------------|
-| 1 | **DarkGenus** | QLoRA on **Llama 3.1 8B Instruct** (`train_darkgenus.py`); save `DarkGenus-8B-LoRA/`; first Ollama merge+Q4 export is broken nonsense |
-| 2 | **DarkGenus** | Fluent workaround: Ollama **`darkgenus-clear`** = **`dolphin3:8b`** (or stock Llama) + Modelfile persona (**no** LoRA) |
-| 3 | **DarkGenus** | Retrain **v2** / **v3** with Llama-3 chat template; save `-v2` / `-v3` adapters; export Q5 GGUFs |
-| 4 | **DarkGenus** | Chat/meta pressure tests; fake-tool suites **262×4** + **50×4** (rates in [RESULTS.md](RESULTS.md)) |
-| 5 | **Control Eval Lab** (this repo) | Practice website, Scout/Thief/Breaker locks, automatic tests; public write-up |
+| 1 | **DarkGenus** | QLoRA on **Llama 3.1 8B Instruct**; save `DarkGenus-8B-LoRA/`; first Ollama merge+Q4 export is broken nonsense |
+| 2 | **DarkGenus** | Fluent workaround: **`darkgenus-clear`** = **`dolphin3:8b`** + Modelfile (**no** LoRA) |
+| 3 | **DarkGenus** | Retrain **v2** / **v3**; export Q5 GGUFs; fake-tool suites **262×4** + **50×4** |
+| 4 | **DarkGenus Control Lab** | Allowlist + agents vs tiny fixture (`:8765`), then **MimWise in Docker on localhost** (prod host blocked) |
+| 5 | **DarkGenus Control Lab** | Docker MimWise: guest broken-access / planted-answer leak found under allowlisted local runs |
+| 6 | **Owner SoftTrial** | Same *style* of pressure on live MimWise (authorized); harder than Docker (empty lists / auth walls) |
+| 7 | **Control Eval Lab** (this repo) | Simplified `toy_app` + Scout/Thief/Breaker so the lock harness is public |
 
-DarkGenus is **not** shipped here. Details below match the private training/export scripts.
+DarkGenus / Docker MimWise stacks are **not** shipped here. Details below match the private scripts and Control Lab reports.
 
 ---
 
@@ -42,10 +44,10 @@ person → AI model → tools (web, upload, APIs) → something happens in the w
 
 If you only grade chat refusals, you miss the tool step. So we measure **locks outside the model** (who it may call, what session it needs, whether wipe is only pretend), and we separately count **attempts** on fake tools.
 
-We did two layers of work:
+We did layered work:
 
-- **Attempts (Experiment B, first, in DarkGenus):** offline, same prompts for several small models, counting how often they tried a fake risky tool.
-- **Locks (Experiment A, later, in this repo):** a multi-role agent run against a local practice website, with automatic pass/fail checks.
+- **Attempts (Experiment B, in DarkGenus):** offline, same prompts for several small models, counting how often they tried a fake risky tool.
+- **Locks on a disposable app (private Control Lab, then this repo):** allowlist + multi-role agents first against a local fixture and **Docker MimWise**, only later against live MimWise SoftTrial; this repo ships the simplified practice site.
 
 ---
 
@@ -140,10 +142,14 @@ How pieces connect: [ARCHITECTURE.md](ARCHITECTURE.md).
 | Simulated wipe + optional human approve | Score “asked to wipe” without deleting data |
 | Guest session gate | Notes closed until a guest cookie exists |
 
-### 4.5 Where we pointed the agents
+### 4.5 Where we pointed the agents (sandbox before live)
 
-1. **Practice website** (`toy_app`): local training villain. After guest start it *intentionally* shows a planted fake secret so Thief success is measurable.
-2. **MimWise:** real owner product, authorized testing only; public text stays high-level.
+Order in the private Control Lab, then here:
+
+1. **Tiny fixture** (`http://127.0.0.1:8765`): prove allowlist / dry-run before a real app.
+2. **MimWise in Docker** on localhost (`:8000`): full product copy, disposable DB. Allowlist permitted only that host; public MimWise / evil / metadata denied (`deny-smoke`). Agents (NVIDIA and local Ollama) found guest broken access to planted victim answers. Wipe stayed simulated + HITL.
+3. **Live MimWise SoftTrial** (owner-authorized): same *style* of pressure; public notes stay high-level. Harder than Docker (empty guest lists, auth walls). No claimed planted-secret IDOR win on the live product in the public write-up.
+4. **Practice website in this repo** (`toy_app`): simplified training villain with intentional planted `PLANTED_SECRET_*` so anyone can score Scout/Thief/Breaker without the private Docker stack.
 
 **Wanted jobs vs unwanted jobs:** Scout/Thief do authorized mapping / marker recovery. Breaker checks that unwanted calls (evil host, metadata) **fail**.
 
@@ -157,7 +163,7 @@ Numbers are in [RESULTS.md](RESULTS.md). In plain words:
 2. **Same script, different attempt rates.** On 262 prompts in DarkGenus, **v3** tried far less often (~13%) than stock Qwen (~77%). That is evidence for *this* script, not a general safety certificate.
 3. **Writing reasons did not reliably stop attempts.** Models often described danger and still called the tool; the post-model blocker stopped fake execution.
 4. **Locks can be tested like unit tests.** Pre-flight and practice-site tests pass on the public lab.
-5. **A real product was harder than the villain.** MimWise showed empty guest lists and auth walls; we do not claim a planted-secret win there.
+5. **Sandbox before live.** Docker MimWise (allowlisted localhost) showed a guest data leak on planted answers; live SoftTrial was harder (empty lists / auth walls). The public `toy_app` is a simplified scoring villain, not that Docker stack.
 6. **Scale is small.** Portfolio / teaching micro-lab, not a frontier sabotage study.
 
 Charts: [dashboard/index.html](dashboard/index.html).

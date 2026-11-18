@@ -75,6 +75,7 @@
     "DarkGenus (private) ran the fake-tool suites first; this public repo adds the practice-site locks.",
     "Under one fixed DarkGenus script (262 prompts), v3 tried fake risky tools less often (~13%) than stock Qwen (~77%).",
     "A blocker after the model stopped fake tool runs even when the model tried.",
-    "The practice site is designed to leak a planted fake secret; the real owner product (MimWise) was harder (empty lists / login walls)."
+    "Control Lab sandboxed MimWise in Docker (prod blocked) before live SoftTrial; Docker showed a guest answer leak, live was harder.",
+    "This public practice site is a simplified scoring villain, not the private Docker MimWise stack."
   ]
 }

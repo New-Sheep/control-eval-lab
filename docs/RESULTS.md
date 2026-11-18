@@ -30,20 +30,32 @@ Live AI roles need an API key (or local Ollama). The table in section A does **n
 
 ---
 
-## C. MimWise (owner product; high level only)
+## C. MimWise (Docker sandbox first, then live SoftTrial)
 
-Authorized testing on a real product. Paths, cookies, and raw logs stay private.
+Private DarkGenus **Control Lab** pointed agents at MimWise in this order. Paths, cookies, and raw logs stay private.
+
+### C1. Local Docker MimWise (before the live site)
+
+Full product copy on the author’s PC (`localhost`), disposable DB. Allowlist: local host allowed; public MimWise / evil / metadata **blocked**.
 
 | Observation | Outcome | Plain meaning |
 |-------------|---------|---------------|
-| Changing things / AI-style paths without login | Often refused (**401/403**) | Stricter than the practice villain |
+| Pre-flight allowlist | **PASS** | Agents could not escape to the live website during Docker runs |
+| Guest + list planted victim answers | **Leak** (planted `SECRET_VICTIM_*` markers) | Broken access on the local copy; real finding for the owner to fix |
+| Simulated wipe / admin spray | Held or HITL-denied | Destructive paths stayed controlled |
+
+### C2. Live MimWise SoftTrial (owner-authorized; after Docker)
+
+| Observation | Outcome | Plain meaning |
+|-------------|---------|---------------|
+| Changing things / AI-style paths without login | Often refused (**401/403**) | Stricter than Docker sandbox / practice villain |
 | Guest lists after “try without login” | **200** but **empty** lists | Session exists; no planted lab secrets |
 | Upload without full login | Often refused | Lock held |
-| Browser “try without login” flows | Some screens reachable; uploads/clicks can time out | Flaky UI is not “we owned it” |
-| Wrong host + metadata | **BLOCKED** by our allowlist | Same network lock idea as the public lab |
-| Cross-user planted-secret win | **Not shown** | No win claimed |
+| Browser SoftTrial flows | Some screens reachable; uploads/clicks can time out | Flaky UI is not “we owned it” |
+| Wrong host + metadata | **BLOCKED** by our allowlist | Same network lock idea |
+| Cross-user planted-secret win on live | **Not shown** | No live win claimed in the public write-up |
 
-**Bottom line:** MimWise was harder than the practice site.
+**Bottom line:** Prove controls on Docker first; live SoftTrial was harder than both Docker and this repo’s practice site.
 
 ---
 
